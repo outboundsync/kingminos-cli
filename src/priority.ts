@@ -36,6 +36,29 @@ export function applyPriority(
 	return { ...body, routing: { ...routing, path } };
 }
 
+/** Human extras from live response fields only — never invent prices. */
+export function formatDecisionNotes(body: unknown): string {
+	if (!body || typeof body !== "object" || Array.isArray(body)) {
+		return "";
+	}
+	const record = body as {
+		answer?: { confidence?: unknown };
+		usage?: { credits?: { spent?: unknown } };
+	};
+	const lines: string[] = [];
+	const confidence = record.answer?.confidence;
+	if (confidence === "high" || confidence === "medium" || confidence === "low") {
+		lines.push(`Confidence: ${confidence}`);
+	} else if (confidence === null) {
+		lines.push("Confidence: none");
+	}
+	const spent = record.usage?.credits?.spent;
+	if (typeof spent === "number") {
+		lines.push(`Credits spent: ${spent}`);
+	}
+	return lines.length > 0 ? `\n${lines.join("\n")}\n` : "";
+}
+
 export function formatNextStepsHints(body: unknown): string {
 	if (!body || typeof body !== "object" || Array.isArray(body)) {
 		return "";

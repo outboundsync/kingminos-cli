@@ -46,7 +46,9 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 		case "company.icon":
 			return capabilityPost("/v1/company/icon", iconBody(flags, loader), flags);
 		case "company.description":
-			return capabilityPost("/v1/company/description", descriptionBody(flags, loader), flags);
+			return capabilityPost("/v1/company/description", descriptionBody(flags, loader), flags, {
+				cache: true,
+			});
 		case "person.verify_employment":
 			return capabilityPost("/v1/person/verify-employment", employmentBody(flags, loader), flags);
 		case "person.language":
@@ -177,6 +179,8 @@ function b2bSocialBody(flags: FlagMap, loader: BodyLoader): Record<string, unkno
 	assignString(body, "domain", flags);
 	assignString(body, "website", flags);
 	assignString(body, "linkedin_url", flags, "linkedin-url");
+	assignString(body, "hint", flags);
+	assignString(body, "country", flags);
 	assignString(body, "path", flags);
 	assignString(body, "preset", flags);
 	assignCommon(body, flags);
@@ -204,6 +208,10 @@ function descriptionBody(flags: FlagMap, loader: BodyLoader): Record<string, unk
 	assignString(body, "website", flags);
 	assignString(body, "path", flags);
 	assignString(body, "preset", flags);
+	assignInteger(body, "max_chars", flags, "max-chars", 80, 500);
+	if (flagBool(flags, "skip-cache")) {
+		body.skip_cache = true;
+	}
 	assignCommon(body, flags);
 	assignJson(body, "routing", flags);
 	assignJson(body, "compliance", flags);
@@ -247,6 +255,9 @@ function languageBody(flags: FlagMap, loader: BodyLoader): Record<string, unknow
 	assignString(body, "linkedin_url", flags, "linkedin-url");
 	assignString(body, "first_name", flags, "first-name");
 	assignString(body, "last_name", flags, "last-name");
+	if (flagBool(flags, "skip-cache")) {
+		body.skip_cache = true;
+	}
 	assignCommon(body, flags);
 	assignJson(body, "compliance", flags);
 	return withPriority(body, flags, "person.language");
@@ -258,6 +269,7 @@ function phoneBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> 
 	assignString(body, "linkedin_url", flags, "linkedin-url");
 	assignString(body, "first_name", flags, "first-name");
 	assignString(body, "last_name", flags, "last-name");
+	assignString(body, "domain", flags);
 	const phoneTypes = flagString(flags, "phone-types");
 	if (phoneTypes !== undefined) {
 		const types = phoneTypes
@@ -364,6 +376,28 @@ function assignString(
 	if (value !== undefined) {
 		body[field] = value;
 	}
+}
+
+function assignInteger(
+	body: Record<string, unknown>,
+	field: string,
+	flags: FlagMap,
+	flagName: string,
+	min: number,
+	max: number,
+): void {
+	const raw = flagString(flags, flagName);
+	if (raw === undefined) {
+		return;
+	}
+	const value = Number(raw);
+	if (!Number.isInteger(value)) {
+		throw new UsageError(`--${flagName} must be an integer`);
+	}
+	if (value < min || value > max) {
+		throw new UsageError(`--${flagName} must be between ${min} and ${max}`);
+	}
+	body[field] = value;
 }
 
 function assignJson(body: Record<string, unknown>, field: string, flags: FlagMap): void {

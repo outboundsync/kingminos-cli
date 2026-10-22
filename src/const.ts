@@ -34,6 +34,19 @@ export function isByokProvider(value: string): value is ByokProvider {
 	return (BYOK_PROVIDERS as readonly string[]).includes(value);
 }
 
-export const BOOLEAN_FLAGS = new Set(["help", "h", "dry-run", "skip-cache"]);
+export const BOOLEAN_FLAGS = new Set(["help", "h", "dry-run", "skip-cache", "json"]);
 
-export const GLOBAL_FLAGS = new Set(["token", "base-url", "help", "h"]);
+export const GLOBAL_FLAGS = new Set(["token", "base-url", "help", "h", "json"]);
+
+/** Process exit codes. HTTP classes are distinct so scripts can branch. */
+export const EXIT = {
+	ok: 0,
+	usage: 1,
+	unauthorized: 2,
+	payment: 3,
+	rateLimited: 4,
+	server: 5,
+	http: 6,
+} as const;
+
+export type ExitCode = (typeof EXIT)[keyof typeof EXIT];

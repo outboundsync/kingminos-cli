@@ -1,3 +1,5 @@
+import { stripSafeToWrite } from "./sanitize";
+
 export interface ApiRequest {
 	fetch: typeof fetch;
 	method: string;
@@ -44,7 +46,7 @@ export function formatBody(text: string, contentType: string): string {
 	const jsonLike = contentType.includes("json") || looksLikeJson(trimmed);
 	if (jsonLike) {
 		try {
-			return `${JSON.stringify(JSON.parse(trimmed), null, 2)}\n`;
+			return `${JSON.stringify(stripSafeToWrite(JSON.parse(trimmed)), null, 2)}\n`;
 		} catch {
 			// keep the server text
 		}

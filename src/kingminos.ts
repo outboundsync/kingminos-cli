@@ -2,21 +2,28 @@ import { readFileSync, realpathSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { apiRequest, formatBody } from "./client";
 import { buildRequest } from "./commands";
-import { BASE_URL_ENV, DEFAULT_BASE_URL, TOKEN_ENV } from "./const";
+import { BASE_URL_ENV, DEFAULT_BASE_URL, EXIT, TOKEN_ENV } from "./const";
 import { commandHelp, ROOT_HELP } from "./help";
+import { classifyHttpError } from "./http-error";
 import {
 	assertKnownFlags,
 	type Command,
 	type FlagMap,
+	flagBool,
 	flagString,
 	parseArgv,
 	resolveCommand,
 } from "./parse";
-import { applyPriority, formatNextStepsHints, parsePriority } from "./priority";
+import { applyPriority, formatDecisionNotes, formatNextStepsHints, parsePriority } from "./priority";
 import { UsageError } from "./usage";
 
-export { BASE_URL_ENV, DEFAULT_BASE_URL, TOKEN_ENV } from "./const";
+export { buildRequest } from "./commands";
+export { BASE_URL_ENV, DEFAULT_BASE_URL, EXIT, TOKEN_ENV } from "./const";
 export { ROOT_HELP } from "./help";
+export { classifyHttpError } from "./http-error";
+export { assertKnownFlags, parseArgv, resolveCommand } from "./parse";
+export { formatDecisionNotes } from "./priority";
+export { stripSafeToWrite } from "./sanitize";
 
 export interface CliIo {
 	argv: string[];
@@ -35,11 +42,11 @@ export async function runCli(io: CliIo): Promise<number> {
 		const secrets = collectSecrets(io);
 		if (error instanceof UsageError) {
 			io.stderr(`${redact(error.message, secrets)}\n`);
-			return 1;
+			return EXIT.usage;
 		}
 		const message = error instanceof Error ? error.message : String(error);
 		io.stderr(`${redact(message, secrets)}\n`);
-		return 1;
+		return EXIT.usage;
 	}
 }
 
@@ -79,13 +86,34 @@ async function runCliUnsafe(io: CliIo): Promise<number> {
 	});
 	const formatted = formatBody(response.text, response.contentType);
 	const secrets = collectSecrets(io, parsed.flags);
+	const asJson = flagBool(parsed.flags, "json") === true;
 	if (response.status >= 400) {
-		io.stderr(redact(`HTTP ${response.status}\n${formatted}`, secrets));
-		return 2;
+		return writeHttpError(io, response.status, response.text, formatted, secrets, asJson);
 	}
 	io.stdout(redact(formatted, secrets));
-	io.stdout(redact(formatNextStepsHints(parseJson(response.text)), secrets));
-	return 0;
+	if (!asJson) {
+		const parsedBody = parseJson(response.text);
+		io.stdout(redact(formatDecisionNotes(parsedBody), secrets));
+		io.stdout(redact(formatNextStepsHints(parsedBody), secrets));
+	}
+	return EXIT.ok;
+}
+
+function writeHttpError(
+	io: CliIo,
+	status: number,
+	rawText: string,
+	formatted: string,
+	secrets: string[],
+	asJson: boolean,
+): number {
+	const classified = classifyHttpError(status, parseJson(rawText));
+	if (asJson) {
+		io.stderr(redact(formatted, secrets));
+	} else {
+		io.stderr(redact(`${classified.message}\n${formatted}`, secrets));
+	}
+	return classified.exitCode;
 }
 
 function parseJson(text: string): unknown {
@@ -126,7 +154,8 @@ async function runBatch(
 	const token = requireToken(flags, io.env);
 	const baseUrl = resolveBaseUrl(flags, io.env);
 	const secrets = collectSecrets(io, flags);
-	let failed = 0;
+	const asJson = flagBool(flags, "json") === true;
+	let worst: number = EXIT.ok;
 	for (const [index, row] of rows.entries()) {
 		const body = applyPriority(row, priority, command.capability);
 		const request = buildRequest({ name: command.capability }, flags, {
@@ -145,14 +174,28 @@ async function runBatch(
 		});
 		const formatted = formatBody(response.text, response.contentType);
 		if (response.status >= 400) {
-			io.stderr(redact(`row ${index + 1} HTTP ${response.status}\n${formatted}`, secrets));
-			failed += 1;
+			const prefix = asJson ? "" : `row ${index + 1} `;
+			const code = writeHttpError(
+				io,
+				response.status,
+				response.text,
+				`${prefix}${formatted}`,
+				secrets,
+				asJson,
+			);
+			worst = Math.max(worst, code);
 			continue;
 		}
-		io.stdout(redact(`# row ${index + 1}\n${formatted}`, secrets));
-		io.stdout(redact(formatNextStepsHints(parseJson(response.text)), secrets));
+		if (asJson) {
+			io.stdout(redact(formatted, secrets));
+		} else {
+			io.stdout(redact(`# row ${index + 1}\n${formatted}`, secrets));
+			const parsedBody = parseJson(response.text);
+			io.stdout(redact(formatDecisionNotes(parsedBody), secrets));
+			io.stdout(redact(formatNextStepsHints(parsedBody), secrets));
+		}
 	}
-	return failed > 0 ? 2 : 0;
+	return worst;
 }
 
 function parseBatchRows(raw: string): Record<string, unknown>[] {

@@ -3,15 +3,23 @@ import { BASE_URL_ENV, BYOK_PROVIDERS, DEFAULT_BASE_URL, TOKEN_ENV } from "./con
 export const ROOT_HELP = `King Minos CLI — KingMinos by OutboundSync
 
 Usage:
-  kingminos [--token <osr_…>] [--base-url <url>] <command>
+  kingminos [--token <key>] [--base-url <url>] [--json] <command>
 
 Auth:
-  Pass your tenant Bearer (osr_…) with --token or ${TOKEN_ENV}.
-  There is no master ROUTER_API_KEY. This CLI never mints, stores, or logs a key.
+  Pass a tenant Bearer with --token or ${TOKEN_ENV}.
+  Tenant keys use the osr_ prefix. App-minted user tokens use km_.
+  Mint a key at https://app.kingminos.com after sign-in.
+  The CLI never stores or logs a key.
 
 API:
   Default ${DEFAULT_BASE_URL}
   Override with --base-url or ${BASE_URL_ENV}
+
+Global flags:
+  --token <key>       Bearer token (overrides ${TOKEN_ENV})
+  --base-url <url>    API host
+  --json              Print the response body only (no Next: hints)
+  --help, -h          This help
 
 Commands (live OpenAPI only):
   health                         GET  /health
@@ -35,11 +43,23 @@ Commands (live OpenAPI only):
   subjects delete <subject_key>  DELETE /v1/subjects/{subject_key}
   batch <company|person> <cmd>   POST each JSONL/JSON-array row (requires --file --priority)
 
+Tiers:
+  --priority speed|balance|accuracy|coverage maps to routing.path.
+  Ask which path before a bulk run. Max yield = coverage.
+  company.resolve value is the one-step lookup, not a tier.
+
+Credits:
+  Billing is for delivered answers. Print usage.credits.spent from the response.
+  The CLI does not hardcode prices.
+
 Your Keys providers: ${BYOK_PROVIDERS.join(", ")}
 Websearch is house-only (no credentials command).
-LeadMagic, Wiza, Findymail, and AI Ark are the approved house-key vendors. ZoomInfo, BuiltWith, Prospeo, Apollo, Company URL Finder, People Data Labs, HG Insights, Brandfetch, and Enrich-CRM stay BYOK.
+LeadMagic, Wiza, Findymail, and AI Ark are house-key vendors. ZoomInfo, BuiltWith,
+Prospeo, Apollo, Company URL Finder, People Data Labs, HG Insights, Brandfetch,
+and Enrich-CRM stay BYOK.
 
-HTTP errors exit non-zero. Responses print as received (pretty JSON when the body is JSON).
+Exit codes: 0 ok · 1 usage · 2 unauthorized (401) · 3 out of credits (402)
+            4 rate limited (429) · 5 server (5xx) · 6 other HTTP error
 
 See kingminos <command> --help for request fields on that call.
 `;
@@ -119,12 +139,14 @@ Headers:     --idempotency-key --explain default|full|minimal --schema 2
 POST /v1/company/b2b-social
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
-Find the company's LinkedIn /company/{slug} page. Pass --domain (required).
---name is optional ranking only. --path speed is the bulk-list path
-(homepage-first, then ranked search). Hits bill; misses are free.
-Do not use company resolve for a LinkedIn page.
+Decide the company's B2B social page URL (result.linkedin_url).
+Pass --domain (required). --name is optional ranking only.
+--path speed is the bulk-list path (homepage-first, then ranked search).
+Delivered answers are billed; misses are not. See usage.credits.spent.
+Do not use company resolve for a B2B social page.
 
 Body fields: --email --name --domain --website --linkedin-url
+             --hint --country
              --path --preset --priority speed|balance|accuracy|coverage
              --dry-run --external-ref
              --routing <json> --compliance <json>
@@ -153,11 +175,12 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email --name --domain --website
              --path --preset --priority speed|balance|accuracy|coverage
-             --dry-run --external-ref
+             --max-chars <80-500> --skip-cache --dry-run --external-ref
              --routing <json> --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal
              --schema 2 --max-provider-credits <n>
+             --cache bypass --cache-control no-cache|no-store
 `;
 		case "company.hierarchy":
 			return `kingminos company hierarchy
@@ -197,6 +220,7 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email | --linkedin-url (one required)
              --first-name --last-name (match-only: rejects a mismatched profile)
+             --priority speed|balance|accuracy --skip-cache
              --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -210,10 +234,12 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email | --linkedin-url (one required)
              --first-name --last-name (match-only: rejects a mismatched profile)
+             --domain
              --phone-types mobile,landline,other,unknown (omit = any)
              --max-results <1-10> (default 3)
              --format e164|international|national|digits|digits_national
                       (fills \`number\`; default e164; every phone also has \`formats\`)
+             --priority speed|balance|accuracy|coverage
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -230,13 +256,14 @@ Body fields: --email | --linkedin-url (one required)
              --first-name --last-name (match-only: rejects a mismatched profile)
              --company-domain (match-only current employer)
              --fields title,seniority,function (omit = all three)
-             --path speed|balance|accuracy|coverage (hit: 1 | 2 | 3 | 5 credits; miss 0)
+             --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
              --cache bypass --cache-control no-cache|no-store
+Delivered answers are billed; misses are not. See usage.credits.spent.
 `;
 		case "runs.get":
 			return `kingminos runs get <id>

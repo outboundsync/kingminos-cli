@@ -123,6 +123,13 @@ describe("runCli", () => {
 		assert.equal(result.stderr, "");
 	});
 
+	it("prints package version with --version", async () => {
+		const result = await run({ argv: ["--version"] });
+		assert.equal(result.code, EXIT.ok);
+		assert.match(result.stdout, /^\d+\.\d+\.\d+(-dev)?\n$/);
+		assert.equal(result.stderr, "");
+	});
+
 	it("exits 1 on usage errors", async () => {
 		const result = await run({ argv: ["nope"] });
 		assert.equal(result.code, EXIT.usage);

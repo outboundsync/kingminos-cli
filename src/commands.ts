@@ -61,6 +61,10 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return capabilityPost("/v1/person/title", titleBody(flags, loader), flags, {
 				cache: true,
 			});
+		case "person.b2b_social":
+			return capabilityPost("/v1/person/b2b-social", personB2bSocialBody(flags, loader), flags, {
+				cache: true,
+			});
 		case "runs.get":
 			return {
 				method: "GET",
@@ -315,8 +319,29 @@ function titleBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> 
 		body.skip_cache = true;
 	}
 	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "person.title");
+}
+
+function personB2bSocialBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
+	const body = baseBody(flags, loader);
+	assignString(body, "email", flags);
+	assignString(body, "linkedin_url", flags, "linkedin-url");
+	assignString(body, "first_name", flags, "first-name");
+	assignString(body, "last_name", flags, "last-name");
+	if (flagBool(flags, "skip-cache")) {
+		body.skip_cache = true;
+	}
+	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "person.b2b_social");
+}
+
+/** `--routing <json>` plus `--path`, for capabilities that read the path from `routing` only. */
+function assignRouting(body: Record<string, unknown>, flags: FlagMap): void {
 	assignJson(body, "routing", flags);
-	// person.title reads the path from `routing` only.
 	const path = flagString(flags, "path");
 	if (path !== undefined) {
 		const routing =
@@ -325,8 +350,6 @@ function titleBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> 
 				: {};
 		body.routing = { ...routing, path };
 	}
-	assignJson(body, "compliance", flags);
-	return withPriority(body, flags, "person.title");
 }
 
 function expectedCompany(flags: FlagMap): Record<string, unknown> | undefined {

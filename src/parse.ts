@@ -216,6 +216,25 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache-control",
 		"priority",
 	]),
+	"person.b2b_social": new Set([
+		"body",
+		"email",
+		"first-name",
+		"last-name",
+		"linkedin-url",
+		"path",
+		"routing",
+		"skip-cache",
+		"dry-run",
+		"external-ref",
+		"compliance",
+		"idempotency-key",
+		"explain",
+		"schema",
+		"cache",
+		"cache-control",
+		"priority",
+	]),
 	"runs.get": new Set(["explain", "schema"]),
 	"credentials.put": new Set(["body", "api-key", "client-id", "client-secret"]),
 	"credentials.delete": new Set(),
@@ -241,6 +260,7 @@ export type Command =
 	| { name: "person.language" }
 	| { name: "person.phone" }
 	| { name: "person.title" }
+	| { name: "person.b2b_social" }
 	| { name: "runs.get"; id: string }
 	| { name: "credentials.put"; provider: string }
 	| { name: "credentials.delete"; provider: string }
@@ -256,7 +276,8 @@ export type BatchCapability =
 	| "person.verify_employment"
 	| "person.language"
 	| "person.phone"
-	| "person.title";
+	| "person.title"
+	| "person.b2b_social";
 
 const KNOWN_FLAGS = new Set<string>([
 	...GLOBAL_FLAGS,
@@ -340,8 +361,16 @@ export function resolveCommand(positionals: string[]): Command {
 		case "company":
 			return resolveCompany(mid, tail);
 		case "person":
-			if (mid !== "verify-employment" && mid !== "language" && mid !== "phone" && mid !== "title") {
-				throw new UsageError("person commands: verify-employment | language | phone | title");
+			if (
+				mid !== "verify-employment" &&
+				mid !== "language" &&
+				mid !== "phone" &&
+				mid !== "title" &&
+				mid !== "b2b-social"
+			) {
+				throw new UsageError(
+					"person commands: verify-employment | language | phone | title | b2b-social",
+				);
 			}
 			if (tail !== undefined) {
 				throw new UsageError(`person ${mid} does not take positional arguments`);
@@ -354,6 +383,9 @@ export function resolveCommand(positionals: string[]): Command {
 			}
 			if (mid === "title") {
 				return { name: "person.title" };
+			}
+			if (mid === "b2b-social") {
+				return { name: "person.b2b_social" };
 			}
 			return { name: "person.verify_employment" };
 		case "runs":
@@ -400,9 +432,12 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 			tail !== "verify-employment" &&
 			tail !== "language" &&
 			tail !== "phone" &&
-			tail !== "title"
+			tail !== "title" &&
+			tail !== "b2b-social"
 		) {
-			throw new UsageError("batch person commands: verify-employment | language | phone | title");
+			throw new UsageError(
+				"batch person commands: verify-employment | language | phone | title | b2b-social",
+			);
 		}
 		if (tail === "language") {
 			return { name: "batch", capability: "person.language" };
@@ -412,6 +447,9 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 		}
 		if (tail === "title") {
 			return { name: "batch", capability: "person.title" };
+		}
+		if (tail === "b2b-social") {
+			return { name: "batch", capability: "person.b2b_social" };
 		}
 		return { name: "batch", capability: "person.verify_employment" };
 	}

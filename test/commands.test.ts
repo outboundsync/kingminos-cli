@@ -132,6 +132,25 @@ describe("buildRequest", () => {
 					routing: { path: "coverage" },
 				},
 			},
+			{
+				command: { name: "person.b2b_social" },
+				path: "/v1/person/b2b-social",
+				extra: {
+					email: "ada@example.com",
+					"linkedin-url": "https://www.linkedin.com/in/example",
+					"first-name": "Ada",
+					"last-name": "Lovelace",
+					routing: '{"ignore":["findymail"]}',
+					path: "accuracy",
+				},
+				body: {
+					email: "ada@example.com",
+					linkedin_url: "https://www.linkedin.com/in/example",
+					first_name: "Ada",
+					last_name: "Lovelace",
+					routing: { ignore: ["findymail"], path: "accuracy" },
+				},
+			},
 		];
 
 	for (const { command, path, extra, body } of posts) {
@@ -143,6 +162,20 @@ describe("buildRequest", () => {
 			assert.deepEqual(request.body, body);
 		});
 	}
+
+	it("applies --priority and cache headers for person.b2b_social", () => {
+		const request = buildRequest(
+			{ name: "person.b2b_social" },
+			flags({ email: "ada@example.com", priority: "speed", "skip-cache": true, cache: "bypass" }),
+			loader,
+		);
+		assert.deepEqual(request.body, {
+			email: "ada@example.com",
+			skip_cache: true,
+			routing: { path: "speed" },
+		});
+		assert.equal(request.headers["X-Router-Cache"], "bypass");
+	});
 
 	it("adds explain / schema / cache headers when asked", () => {
 		const request = buildRequest(

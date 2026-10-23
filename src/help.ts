@@ -37,6 +37,7 @@ Commands (live OpenAPI only):
   person language                POST /v1/person/language
   person phone                   POST /v1/person/phone
   person title                   POST /v1/person/title
+  person b2b-social              POST /v1/person/b2b-social
   runs get <id>                  GET  /v1/runs/{id}
   credentials put <provider>     PUT  /v1/credentials/{provider}
   credentials delete <provider>  DELETE /v1/credentials/{provider}
@@ -258,6 +259,24 @@ Body fields: --email | --linkedin-url (one required)
              --fields title,seniority,function (omit = all three)
              --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
+             --routing <json> (only / ignore)
+             --skip-cache --dry-run --external-ref --compliance <json>
+             --body <json|@file|->
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --cache bypass --cache-control no-cache|no-store
+Delivered answers are billed; misses are not. See usage.credits.spent.
+`;
+		case "person.b2b_social":
+			return `kingminos person b2b-social
+
+POST /v1/person/b2b-social
+A person's B2B social profile URL (result.linkedin_url) from their email.
+Requires tenant Bearer (--token or ${TOKEN_ENV}).
+
+Body fields: --email (required)
+             --linkedin-url --first-name --last-name (match-only: rejects a mismatched profile)
+             --path speed|balance|accuracy (no coverage)
+             --priority speed|balance|accuracy
              --routing <json> (only / ignore)
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->

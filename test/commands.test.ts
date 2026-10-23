@@ -132,6 +132,21 @@ describe("buildRequest", () => {
 					routing: { path: "coverage" },
 				},
 			},
+			{
+				command: { name: "person.name" },
+				path: "/v1/person/name",
+				extra: {
+					"linkedin-url": "https://www.linkedin.com/in/example",
+					routing: '{"only":["leadmagic"]}',
+					path: "accuracy",
+					"skip-cache": true,
+				},
+				body: {
+					linkedin_url: "https://www.linkedin.com/in/example",
+					skip_cache: true,
+					routing: { only: ["leadmagic"], path: "accuracy" },
+				},
+			},
 		];
 
 	for (const { command, path, extra, body } of posts) {
@@ -143,6 +158,16 @@ describe("buildRequest", () => {
 			assert.deepEqual(request.body, body);
 		});
 	}
+
+	it("applies --priority over --path for person.name", () => {
+		const request = buildRequest(
+			{ name: "person.name" },
+			flags({ email: "ada@example.com", path: "speed", priority: "coverage", cache: "bypass" }),
+			loader,
+		);
+		assert.deepEqual(request.body, { email: "ada@example.com", routing: { path: "coverage" } });
+		assert.equal(request.headers["X-Router-Cache"], "bypass");
+	});
 
 	it("adds explain / schema / cache headers when asked", () => {
 		const request = buildRequest(

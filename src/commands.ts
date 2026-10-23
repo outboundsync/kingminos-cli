@@ -61,6 +61,10 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return capabilityPost("/v1/person/title", titleBody(flags, loader), flags, {
 				cache: true,
 			});
+		case "person.name":
+			return capabilityPost("/v1/person/name", nameBody(flags, loader), flags, {
+				cache: true,
+			});
 		case "runs.get":
 			return {
 				method: "GET",
@@ -315,8 +319,27 @@ function titleBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> 
 		body.skip_cache = true;
 	}
 	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "person.title");
+}
+
+function nameBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
+	const body = baseBody(flags, loader);
+	assignString(body, "email", flags);
+	assignString(body, "linkedin_url", flags, "linkedin-url");
+	if (flagBool(flags, "skip-cache")) {
+		body.skip_cache = true;
+	}
+	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "person.name");
+}
+
+/** `--routing <json>` plus `--path`, for capabilities that read the path from `routing` only. */
+function assignRouting(body: Record<string, unknown>, flags: FlagMap): void {
 	assignJson(body, "routing", flags);
-	// person.title reads the path from `routing` only.
 	const path = flagString(flags, "path");
 	if (path !== undefined) {
 		const routing =
@@ -325,8 +348,6 @@ function titleBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> 
 				: {};
 		body.routing = { ...routing, path };
 	}
-	assignJson(body, "compliance", flags);
-	return withPriority(body, flags, "person.title");
 }
 
 function expectedCompany(flags: FlagMap): Record<string, unknown> | undefined {

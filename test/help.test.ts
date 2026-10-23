@@ -33,4 +33,16 @@ describe("kingminos CLI", () => {
 		assert.match(heading, /company b2b-social/);
 		assert.doesNotMatch(heading, /LinkedIn/);
 	});
+
+	it("lists person name and prints its help", () => {
+		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
+		assert.match(root.stdout, /person name\s+POST \/v1\/person\/name/);
+		const result = spawnSync(process.execPath, [cli, "person", "name", "--help"], {
+			encoding: "utf8",
+			cwd: repoRoot,
+		});
+		assert.equal(result.status, 0);
+		assert.match(result.stdout, /POST \/v1\/person\/name/);
+		assert.match(result.stdout, /--email \| --linkedin-url \(one required\)/);
+	});
 });

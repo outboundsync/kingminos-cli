@@ -37,6 +37,7 @@ Commands (live OpenAPI only):
   person language                POST /v1/person/language
   person phone                   POST /v1/person/phone
   person title                   POST /v1/person/title
+  person name                    POST /v1/person/name
   runs get <id>                  GET  /v1/runs/{id}
   credentials put <provider>     PUT  /v1/credentials/{provider}
   credentials delete <provider>  DELETE /v1/credentials/{provider}
@@ -256,6 +257,23 @@ Body fields: --email | --linkedin-url (one required)
              --first-name --last-name (match-only: rejects a mismatched profile)
              --company-domain (match-only current employer)
              --fields title,seniority,function (omit = all three)
+             --path speed|balance|accuracy|coverage
+             --priority speed|balance|accuracy|coverage
+             --routing <json> (only / ignore)
+             --skip-cache --dry-run --external-ref --compliance <json>
+             --body <json|@file|->
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --cache bypass --cache-control no-cache|no-store
+Delivered answers are billed; misses are not. See usage.credits.spent.
+`;
+		case "person.name":
+			return `kingminos person name
+
+POST /v1/person/name
+A person's proper-cased first, last and full name.
+Requires tenant Bearer (--token or ${TOKEN_ENV}).
+
+Body fields: --email | --linkedin-url (one required)
              --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)

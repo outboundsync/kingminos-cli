@@ -216,6 +216,23 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache-control",
 		"priority",
 	]),
+	"person.name": new Set([
+		"body",
+		"email",
+		"linkedin-url",
+		"path",
+		"routing",
+		"skip-cache",
+		"dry-run",
+		"external-ref",
+		"compliance",
+		"idempotency-key",
+		"explain",
+		"schema",
+		"cache",
+		"cache-control",
+		"priority",
+	]),
 	"runs.get": new Set(["explain", "schema"]),
 	"credentials.put": new Set(["body", "api-key", "client-id", "client-secret"]),
 	"credentials.delete": new Set(),
@@ -241,6 +258,7 @@ export type Command =
 	| { name: "person.language" }
 	| { name: "person.phone" }
 	| { name: "person.title" }
+	| { name: "person.name" }
 	| { name: "runs.get"; id: string }
 	| { name: "credentials.put"; provider: string }
 	| { name: "credentials.delete"; provider: string }
@@ -256,7 +274,8 @@ export type BatchCapability =
 	| "person.verify_employment"
 	| "person.language"
 	| "person.phone"
-	| "person.title";
+	| "person.title"
+	| "person.name";
 
 const KNOWN_FLAGS = new Set<string>([
 	...GLOBAL_FLAGS,
@@ -340,8 +359,14 @@ export function resolveCommand(positionals: string[]): Command {
 		case "company":
 			return resolveCompany(mid, tail);
 		case "person":
-			if (mid !== "verify-employment" && mid !== "language" && mid !== "phone" && mid !== "title") {
-				throw new UsageError("person commands: verify-employment | language | phone | title");
+			if (
+				mid !== "verify-employment" &&
+				mid !== "language" &&
+				mid !== "phone" &&
+				mid !== "title" &&
+				mid !== "name"
+			) {
+				throw new UsageError("person commands: verify-employment | language | phone | title | name");
 			}
 			if (tail !== undefined) {
 				throw new UsageError(`person ${mid} does not take positional arguments`);
@@ -354,6 +379,9 @@ export function resolveCommand(positionals: string[]): Command {
 			}
 			if (mid === "title") {
 				return { name: "person.title" };
+			}
+			if (mid === "name") {
+				return { name: "person.name" };
 			}
 			return { name: "person.verify_employment" };
 		case "runs":
@@ -400,9 +428,12 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 			tail !== "verify-employment" &&
 			tail !== "language" &&
 			tail !== "phone" &&
-			tail !== "title"
+			tail !== "title" &&
+			tail !== "name"
 		) {
-			throw new UsageError("batch person commands: verify-employment | language | phone | title");
+			throw new UsageError(
+				"batch person commands: verify-employment | language | phone | title | name",
+			);
 		}
 		if (tail === "language") {
 			return { name: "batch", capability: "person.language" };
@@ -412,6 +443,9 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 		}
 		if (tail === "title") {
 			return { name: "batch", capability: "person.title" };
+		}
+		if (tail === "name") {
+			return { name: "batch", capability: "person.name" };
 		}
 		return { name: "batch", capability: "person.verify_employment" };
 	}

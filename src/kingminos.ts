@@ -254,6 +254,8 @@ function helpTopic(topic: string): string {
 			return "person.phone";
 		case "title":
 			return "person.title";
+		case "name":
+			return "person.name";
 		case "recipes":
 			return "recipes";
 		case "batch":

@@ -1,6 +1,6 @@
 {
   "name": "kingminos",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "KingMinos CLI — call the KingMinos API from your terminal",
   "license": "MIT",
   "type": "module",

@@ -216,6 +216,23 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache-control",
 		"priority",
 	]),
+	"person.name": new Set([
+		"body",
+		"email",
+		"linkedin-url",
+		"path",
+		"routing",
+		"skip-cache",
+		"dry-run",
+		"external-ref",
+		"compliance",
+		"idempotency-key",
+		"explain",
+		"schema",
+		"cache",
+		"cache-control",
+		"priority",
+	]),
 	"person.b2b_social": new Set([
 		"body",
 		"email",
@@ -260,6 +277,7 @@ export type Command =
 	| { name: "person.language" }
 	| { name: "person.phone" }
 	| { name: "person.title" }
+	| { name: "person.name" }
 	| { name: "person.b2b_social" }
 	| { name: "runs.get"; id: string }
 	| { name: "credentials.put"; provider: string }
@@ -277,6 +295,7 @@ export type BatchCapability =
 	| "person.language"
 	| "person.phone"
 	| "person.title"
+	| "person.name"
 	| "person.b2b_social";
 
 const KNOWN_FLAGS = new Set<string>([
@@ -366,10 +385,11 @@ export function resolveCommand(positionals: string[]): Command {
 				mid !== "language" &&
 				mid !== "phone" &&
 				mid !== "title" &&
+				mid !== "name" &&
 				mid !== "b2b-social"
 			) {
 				throw new UsageError(
-					"person commands: verify-employment | language | phone | title | b2b-social",
+					"person commands: verify-employment | language | phone | title | name | b2b-social",
 				);
 			}
 			if (tail !== undefined) {
@@ -383,6 +403,9 @@ export function resolveCommand(positionals: string[]): Command {
 			}
 			if (mid === "title") {
 				return { name: "person.title" };
+			}
+			if (mid === "name") {
+				return { name: "person.name" };
 			}
 			if (mid === "b2b-social") {
 				return { name: "person.b2b_social" };
@@ -433,10 +456,11 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 			tail !== "language" &&
 			tail !== "phone" &&
 			tail !== "title" &&
+			tail !== "name" &&
 			tail !== "b2b-social"
 		) {
 			throw new UsageError(
-				"batch person commands: verify-employment | language | phone | title | b2b-social",
+				"batch person commands: verify-employment | language | phone | title | name | b2b-social",
 			);
 		}
 		if (tail === "language") {
@@ -447,6 +471,9 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 		}
 		if (tail === "title") {
 			return { name: "batch", capability: "person.title" };
+		}
+		if (tail === "name") {
+			return { name: "batch", capability: "person.name" };
 		}
 		if (tail === "b2b-social") {
 			return { name: "batch", capability: "person.b2b_social" };

@@ -103,6 +103,18 @@ node dist/kingminos.js --help
 npm run ci
 ```
 
+## Releases & versioning
+
+Published npm versions use **CalVer** in npm-safe semver form: `YYYY.M.DDNN` (UTC calendar date, month without a leading zero, day encoded in the patch as `DD×100+NN`). Examples: `2026.10.2300` (first release on 2026-10-23), `2026.10.2301` (second that day), `2027.1.500` (2027-01-05). Git tags are `v` plus that version (e.g. `v2026.10.2300`).
+
+On `main`, `package.json` stays at a **placeholder** (`0.0.0-dev`). The authoritative version for each release is the git tag; CI bumps `package.json` only in the publish job before `npm publish`, without committing back to `main`.
+
+After [CI](.github/workflows/ci.yml) succeeds on a push to `main` (or on a manual **Publish** workflow run on `main`), [.github/workflows/publish.yml](.github/workflows/publish.yml) plans the next version, skips when there are no releasable commits since the last tag, builds and tests, publishes to npm with OIDC trusted publishing (`npm publish --provenance`), then creates the git tag and GitHub release. Preview locally:
+
+```bash
+npm run release:preview
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).

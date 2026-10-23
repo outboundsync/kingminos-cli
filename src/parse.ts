@@ -343,6 +343,10 @@ export function parseArgv(argv: string[]): ParsedArgv {
 			flags[name] = value;
 			continue;
 		}
+		if (arg === "-V" || arg === "-v") {
+			flags.version = true;
+			continue;
+		}
 		if (arg === "-h") {
 			flags.help = true;
 			continue;

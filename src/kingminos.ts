@@ -16,6 +16,7 @@ import {
 } from "./parse";
 import { applyPriority, formatDecisionNotes, formatNextStepsHints, parsePriority } from "./priority";
 import { UsageError } from "./usage";
+import { getPackageVersion } from "./version";
 
 export { buildRequest } from "./commands";
 export { BASE_URL_ENV, DEFAULT_BASE_URL, EXIT, TOKEN_ENV } from "./const";
@@ -52,6 +53,10 @@ export async function runCli(io: CliIo): Promise<number> {
 
 async function runCliUnsafe(io: CliIo): Promise<number> {
 	const parsed = parseArgv(io.argv);
+	if (parsed.flags.version === true || parsed.flags.V === true) {
+		io.stdout(`${getPackageVersion()}\n`);
+		return 0;
+	}
 	if (parsed.flags.help === true || parsed.flags.h === true) {
 		if (parsed.positionals.length === 0) {
 			io.stdout(ROOT_HELP);

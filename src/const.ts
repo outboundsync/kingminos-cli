@@ -34,7 +34,7 @@ export function isByokProvider(value: string): value is ByokProvider {
 	return (BYOK_PROVIDERS as readonly string[]).includes(value);
 }
 
-export const BOOLEAN_FLAGS = new Set(["help", "h", "dry-run", "skip-cache", "json"]);
+export const BOOLEAN_FLAGS = new Set(["help", "h", "version", "V", "dry-run", "skip-cache", "json"]);
 
 export const GLOBAL_FLAGS = new Set(["token", "base-url", "help", "h", "json"]);
 

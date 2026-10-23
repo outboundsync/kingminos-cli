@@ -1,28 +1,137 @@
 name: Publish
 
 on:
-  push:
-    tags:
-      - "v*"
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
+
+concurrency:
+  group: calver-publish
+  cancel-in-progress: false
 
 jobs:
   publish:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
+      || (github.event.workflow_run.conclusion == 'success'
+        && github.event.workflow_run.event == 'push')
     runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ env.RELEASE_SHA }}
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: "22"
           registry-url: https://registry.npmjs.org
           cache: npm
+
       # Trusted publishing (OIDC) needs npm 11.5.1 or newer; pinned to the 12.x major.
-      - run: npm install -g npm@12
-      - run: npm ci
-      - run: npm run build
-      - run: npm test
-      # No token: npm trusts this workflow via the package's Trusted Publisher setting.
-      - run: npm publish --provenance --access public
+      - name: Install npm
+        run: npm install -g npm@12
+
+      - name: Plan CalVer release
+        id: calver
+        run: node scripts/release-calver.mjs --dry-run --notes-file release-notes.md --tag-file release-tag.txt --version-file release-version.txt
+
+      - name: Skip when nothing to release
+        if: steps.calver.outputs.has_changes != 'true'
+        run: echo "No releasable commits since the last CalVer tag."
+
+      - name: Guard duplicate tag
+        id: tag_guard
+        if: steps.calver.outputs.has_changes == 'true'
+        env:
+          TAG: ${{ steps.calver.outputs.next_tag }}
+        run: |
+          if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+            echo "skip_publish=tag_exists" >> "$GITHUB_OUTPUT"
+            echo "Tag $TAG already exists; skipping publish."
+            exit 0
+          fi
+          echo "skip_publish=false" >> "$GITHUB_OUTPUT"
+
+      - name: Guard duplicate npm version
+        id: npm_guard
+        if: steps.calver.outputs.has_changes == 'true' && steps.tag_guard.outputs.skip_publish == 'false'
+        env:
+          VERSION: ${{ steps.calver.outputs.next_version }}
+        run: |
+          if npm view "kingminos@${VERSION}" version 2>/dev/null; then
+            echo "skip_publish=npm_exists" >> "$GITHUB_OUTPUT"
+            echo "kingminos@${VERSION} is already on npm; skipping publish."
+            exit 0
+          fi
+          echo "skip_publish=false" >> "$GITHUB_OUTPUT"
+
+      - name: Apply version for publish
+        if: >-
+          steps.calver.outputs.has_changes == 'true'
+          && steps.tag_guard.outputs.skip_publish == 'false'
+          && steps.npm_guard.outputs.skip_publish == 'false'
+        run: node scripts/release-calver.mjs --apply --notes-file release-notes.md
+
+      - name: Install, build, and test
+        if: >-
+          steps.calver.outputs.has_changes == 'true'
+          && steps.tag_guard.outputs.skip_publish == 'false'
+          && steps.npm_guard.outputs.skip_publish == 'false'
+        run: |
+          npm ci
+          npm run build
+          npm test
+
+      - name: Publish to npm
+        if: >-
+          steps.calver.outputs.has_changes == 'true'
+          && steps.tag_guard.outputs.skip_publish == 'false'
+          && steps.npm_guard.outputs.skip_publish == 'false'
+        # No token: npm trusts this workflow via the package's Trusted Publisher setting.
+        run: npm publish --provenance --access public
+
+      - name: Configure git
+        if: >-
+          steps.calver.outputs.has_changes == 'true'
+          && steps.tag_guard.outputs.skip_publish == 'false'
+          && steps.npm_guard.outputs.skip_publish == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Create and push tag
+        id: tag
+        if: >-
+          steps.calver.outputs.has_changes == 'true'
+          && steps.tag_guard.outputs.skip_publish == 'false'
+          && steps.npm_guard.outputs.skip_publish == 'false'
+        env:
+          TAG: ${{ steps.calver.outputs.next_tag }}
+        run: |
+          git tag -a "$TAG" -m "Release $TAG" "$RELEASE_SHA"
+          git push origin "refs/tags/$TAG"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        if: >-
+          steps.calver.outputs.has_changes == 'true'
+          && steps.tag_guard.outputs.skip_publish == 'false'
+          && steps.npm_guard.outputs.skip_publish == 'false'
+          && steps.tag.outputs.created == 'true'
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ steps.calver.outputs.next_tag }}
+          name: ${{ steps.calver.outputs.next_tag }}
+          body_path: release-notes.md

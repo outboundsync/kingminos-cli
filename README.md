@@ -75,6 +75,7 @@ kingminos person language --email ada@example.com
 kingminos person phone --email ada@example.com --format e164
 kingminos person title --email ada@example.com --company-domain example.com
 kingminos person name --email ada@example.com --path accuracy
+kingminos person b2b-social --email ada@example.com --priority balance
 ```
 
 Discovery and account helpers:

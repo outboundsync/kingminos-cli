@@ -65,6 +65,10 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return capabilityPost("/v1/person/name", nameBody(flags, loader), flags, {
 				cache: true,
 			});
+		case "person.b2b_social":
+			return capabilityPost("/v1/person/b2b-social", personB2bSocialBody(flags, loader), flags, {
+				cache: true,
+			});
 		case "runs.get":
 			return {
 				method: "GET",
@@ -335,6 +339,21 @@ function nameBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
 	assignRouting(body, flags);
 	assignJson(body, "compliance", flags);
 	return withPriority(body, flags, "person.name");
+}
+
+function personB2bSocialBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
+	const body = baseBody(flags, loader);
+	assignString(body, "email", flags);
+	assignString(body, "linkedin_url", flags, "linkedin-url");
+	assignString(body, "first_name", flags, "first-name");
+	assignString(body, "last_name", flags, "last-name");
+	if (flagBool(flags, "skip-cache")) {
+		body.skip_cache = true;
+	}
+	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "person.b2b_social");
 }
 
 /** `--routing <json>` plus `--path`, for capabilities that read the path from `routing` only. */

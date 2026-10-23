@@ -65,6 +65,7 @@ describe("resolveCommand", () => {
 		{ argv: ["person", "phone"], name: "person.phone" },
 		{ argv: ["person", "title"], name: "person.title" },
 		{ argv: ["person", "name"], name: "person.name" },
+		{ argv: ["person", "b2b-social"], name: "person.b2b_social" },
 	];
 
 	for (const { argv, name } of cases) {

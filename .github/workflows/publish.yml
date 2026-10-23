@@ -19,9 +19,10 @@ jobs:
           node-version: "22"
           registry-url: https://registry.npmjs.org
           cache: npm
+      # Trusted publishing (OIDC) needs npm 11.5.1 or newer.
+      - run: npm install -g npm@latest
       - run: npm ci
       - run: npm run build
       - run: npm test
+      # No token: npm trusts this workflow via the package's Trusted Publisher setting.
       - run: npm publish --provenance --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -60,4 +60,23 @@ describe("kingminos CLI", () => {
 		assert.match(result.stdout, /--email \(required\)/);
 		assert.match(result.stdout, /no coverage/);
 	});
+
+	it("lists person email and email verify and prints their help", () => {
+		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
+		assert.match(root.stdout, /person email\s+POST \/v1\/person\/email/);
+		assert.match(root.stdout, /email verify\s+POST \/v1\/email\/verify/);
+		const find = spawnSync(process.execPath, [cli, "person", "email", "--help"], {
+			encoding: "utf8",
+			cwd: repoRoot,
+		});
+		assert.equal(find.status, 0);
+		assert.match(find.stdout, /--first-name --last-name --company-domain/);
+		const verify = spawnSync(process.execPath, [cli, "email", "verify", "--help"], {
+			encoding: "utf8",
+			cwd: repoRoot,
+		});
+		assert.equal(verify.status, 0);
+		assert.match(verify.stdout, /valid \| invalid \| catch_all \| unknown/);
+		assert.doesNotMatch(verify.stdout, /--cache /);
+	});
 });

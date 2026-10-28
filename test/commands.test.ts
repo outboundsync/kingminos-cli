@@ -166,6 +166,35 @@ describe("buildRequest", () => {
 					routing: { ignore: ["findymail"], path: "accuracy" },
 				},
 			},
+			{
+				command: { name: "person.email" },
+				path: "/v1/person/email",
+				extra: {
+					"first-name": "Ada",
+					"last-name": "Lovelace",
+					"company-domain": "example.com",
+					"linkedin-url": "https://www.linkedin.com/in/example",
+					path: "coverage",
+					"skip-cache": true,
+				},
+				body: {
+					first_name: "Ada",
+					last_name: "Lovelace",
+					company_domain: "example.com",
+					linkedin_url: "https://www.linkedin.com/in/example",
+					skip_cache: true,
+					routing: { path: "coverage" },
+				},
+			},
+			{
+				command: { name: "email.verify" },
+				path: "/v1/email/verify",
+				extra: { email: "ada@example.com", routing: '{"only":["findymail"]}', path: "speed" },
+				body: {
+					email: "ada@example.com",
+					routing: { only: ["findymail"], path: "speed" },
+				},
+			},
 		];
 
 	for (const { command, path, extra, body } of posts) {

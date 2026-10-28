@@ -69,6 +69,12 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return capabilityPost("/v1/person/b2b-social", personB2bSocialBody(flags, loader), flags, {
 				cache: true,
 			});
+		case "person.email":
+			return capabilityPost("/v1/person/email", personEmailBody(flags, loader), flags, {
+				cache: true,
+			});
+		case "email.verify":
+			return capabilityPost("/v1/email/verify", emailVerifyBody(flags, loader), flags);
 		case "runs.get":
 			return {
 				method: "GET",
@@ -354,6 +360,32 @@ function personB2bSocialBody(flags: FlagMap, loader: BodyLoader): Record<string,
 	assignRouting(body, flags);
 	assignJson(body, "compliance", flags);
 	return withPriority(body, flags, "person.b2b_social");
+}
+
+/** A work email from a name + company domain, and/or a LinkedIn URL. */
+function personEmailBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
+	const body = baseBody(flags, loader);
+	assignString(body, "first_name", flags, "first-name");
+	assignString(body, "last_name", flags, "last-name");
+	assignString(body, "company_domain", flags, "company-domain");
+	assignString(body, "linkedin_url", flags, "linkedin-url");
+	if (flagBool(flags, "skip-cache")) {
+		body.skip_cache = true;
+	}
+	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "person.email");
+}
+
+/** One mailbox. Not cached server-side, so no cache flags. */
+function emailVerifyBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
+	const body = baseBody(flags, loader);
+	assignString(body, "email", flags);
+	assignCommon(body, flags);
+	assignRouting(body, flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "email.verify");
 }
 
 /** `--routing <json>` plus `--path`, for capabilities that read the path from `routing` only. */

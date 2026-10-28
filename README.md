@@ -76,6 +76,8 @@ kingminos person phone --email ada@example.com --format e164
 kingminos person title --email ada@example.com --company-domain example.com
 kingminos person name --email ada@example.com --path accuracy
 kingminos person b2b-social --email ada@example.com --priority balance
+kingminos person email --first-name Ada --last-name Lovelace --company-domain example.com --priority balance
+kingminos email verify --email ada@example.com --priority accuracy
 ```
 
 Discovery and account helpers:

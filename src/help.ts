@@ -39,11 +39,13 @@ Commands (live OpenAPI only):
   person title                   POST /v1/person/title
   person name                    POST /v1/person/name
   person b2b-social              POST /v1/person/b2b-social
+  person email                   POST /v1/person/email
+  email verify                   POST /v1/email/verify
   runs get <id>                  GET  /v1/runs/{id}
   credentials put <provider>     PUT  /v1/credentials/{provider}
   credentials delete <provider>  DELETE /v1/credentials/{provider}
   subjects delete <subject_key>  DELETE /v1/subjects/{subject_key}
-  batch <company|person> <cmd>   POST each JSONL/JSON-array row (requires --file --priority)
+  batch <company|person|email> <cmd>  POST each JSONL/JSON-array row (requires --file --priority)
 
 Tiers:
   --priority speed|balance|accuracy|coverage maps to routing.path.
@@ -99,7 +101,7 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Machine-readable chaining workflows. Ask speed / balance / accuracy / coverage before a bulk run. Max yield = coverage.
 `;
 		case "batch":
-			return `kingminos batch <company|person> <command> --file <path|-> --priority speed|balance|accuracy|coverage
+			return `kingminos batch <company|person|email> <command> --file <path|-> --priority speed|balance|accuracy|coverage
 
 Client-side loop over JSONL (or a JSON array) of request bodies. Not a bulk API.
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
@@ -301,6 +303,42 @@ Body fields: --email (required)
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
              --cache bypass --cache-control no-cache|no-store
 Delivered answers are billed; misses are not. See usage.credits.spent.
+`;
+		case "person.email":
+			return `kingminos person email
+
+POST /v1/person/email
+A person's verified work email (result.email).
+Requires tenant Bearer (--token or ${TOKEN_ENV}).
+
+Body fields: --first-name --last-name --company-domain (the name route)
+             and/or --linkedin-url (the LinkedIn route); at least one route
+             --path speed|balance|accuracy|coverage
+             --priority speed|balance|accuracy|coverage
+             --routing <json> (only / ignore)
+             --skip-cache --dry-run --external-ref --compliance <json>
+             --body <json|@file|->
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --cache bypass --cache-control no-cache|no-store
+Only a delivered email is billed; misses, conflicts and catch-alls are not.
+See usage.credits.spent.
+`;
+		case "email.verify":
+			return `kingminos email verify
+
+POST /v1/email/verify
+Is this mailbox deliverable? (result.status: valid | invalid | catch_all | unknown)
+Requires tenant Bearer (--token or ${TOKEN_ENV}).
+
+Body fields: --email (required)
+             --path speed|balance|accuracy|coverage
+             --priority speed|balance|accuracy|coverage
+             --routing <json> (only / ignore)
+             --dry-run --external-ref --compliance <json>
+             --body <json|@file|->
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
+Only a delivered valid or invalid is billed; catch_all and unknown are not.
+See usage.credits.spent.
 `;
 		case "runs.get":
 			return `kingminos runs get <id>

@@ -261,6 +261,10 @@ function helpTopic(topic: string): string {
 			return "person.title";
 		case "name":
 			return "person.name";
+		case "email":
+			return "person.email";
+		case "verify":
+			return "email.verify";
 		case "recipes":
 			return "recipes";
 		case "batch":

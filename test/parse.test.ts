@@ -66,6 +66,8 @@ describe("resolveCommand", () => {
 		{ argv: ["person", "title"], name: "person.title" },
 		{ argv: ["person", "name"], name: "person.name" },
 		{ argv: ["person", "b2b-social"], name: "person.b2b_social" },
+		{ argv: ["person", "email"], name: "person.email" },
+		{ argv: ["email", "verify"], name: "email.verify" },
 	];
 
 	for (const { argv, name } of cases) {
@@ -108,6 +110,15 @@ describe("resolveCommand", () => {
 			name: "batch",
 			capability: "person.title",
 		});
+		assert.deepEqual(resolveCommand(["batch", "person", "email"]), {
+			name: "batch",
+			capability: "person.email",
+		});
+		assert.deepEqual(resolveCommand(["batch", "email", "verify"]), {
+			name: "batch",
+			capability: "email.verify",
+		});
+		assert.throws(() => resolveCommand(["email", "find"]), { message: /email commands: verify/ });
 	});
 
 	it("does not accept a linkedin command name", () => {

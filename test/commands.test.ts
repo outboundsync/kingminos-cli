@@ -29,6 +29,12 @@ describe("buildRequest", () => {
 		assert.equal(buildRequest({ name: "providers" }, {}, loader).path, "/v1/providers");
 		assert.equal(buildRequest({ name: "capabilities" }, {}, loader).path, "/v1/capabilities");
 		assert.equal(buildRequest({ name: "recipes" }, {}, loader).path, "/v1/recipes");
+		assert.deepEqual(buildRequest({ name: "recipes.guidance" }, {}, loader), {
+			method: "GET",
+			path: "/v1/recipes/guidance",
+			headers: {},
+			auth: false,
+		});
 		assert.equal(buildRequest({ name: "providers" }, {}, loader).auth, true);
 	});
 

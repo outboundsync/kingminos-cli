@@ -5,6 +5,9 @@ import {
 	type CliIo,
 	EXIT,
 	formatDecisionNotes,
+	formatHumanResponseExtras,
+	formatOptionsHints,
+	formatQualityFlagsWarning,
 	runCli,
 	stripSafeToWrite,
 } from "../dist/kingminos.js";
@@ -77,6 +80,62 @@ describe("stripSafeToWrite", () => {
 				result: { phones: [{ number: "+1" }] },
 			},
 		);
+	});
+});
+
+describe("formatQualityFlagsWarning", () => {
+	it("warns when result.quality_flags is non-empty", () => {
+		assert.match(
+			formatQualityFlagsWarning({
+				result: { quality_flags: ["surname_initial_only"] },
+			}),
+			/Do not write this name/,
+		);
+	});
+
+	it("prints nothing when quality_flags is absent", () => {
+		assert.equal(formatQualityFlagsWarning({ result: {} }), "");
+	});
+});
+
+describe("formatOptionsHints", () => {
+	it("prints endpoints and est_credits", () => {
+		const text = formatOptionsHints({
+			options: [
+				{
+					endpoint: "/v1/person/b2b-social",
+					description: "LinkedIn profile",
+					est_credits: 1.2,
+				},
+				{
+					endpoint: "/v1/person/name",
+					path: "coverage",
+					description: "Max yield",
+					est_credits: 3.4,
+				},
+			],
+		});
+		assert.match(text, /Options/);
+		assert.match(text, /\/v1\/person\/b2b-social ~1.2 credits/);
+		assert.match(text, /\[coverage\] ~3.4 credits/);
+	});
+});
+
+describe("formatHumanResponseExtras", () => {
+	it("combines warnings, options, and next steps", () => {
+		const text = formatHumanResponseExtras({
+			answer: { confidence: "low" },
+			result: { quality_flags: ["surname_truncated"] },
+			options: [{ endpoint: "/v1/person/name", path: "accuracy", est_credits: 2, description: "x" }],
+			agent_guidance: "Present options and wait.",
+			next_steps: [{ action: "call_capability", endpoint: "/v1/person/b2b-social", reason: "gap" }],
+		});
+		assert.match(text, /Confidence: low/);
+		assert.match(text, /Warning: quality_flags/);
+		assert.match(text, /Options/);
+		assert.match(text, /Agent: Present options/);
+		assert.match(text, /Next:/);
+		assert.match(text, /\/v1\/person\/b2b-social/);
 	});
 });
 
@@ -173,9 +232,43 @@ describe("runCli", () => {
 		assert.doesNotMatch(result.stdout, /safe_to_write/);
 		assert.doesNotMatch(result.stdout, /Confidence:/);
 		assert.doesNotMatch(result.stdout, /Next:/);
+		assert.doesNotMatch(result.stdout, /Options/);
+		assert.doesNotMatch(result.stdout, /quality_flags/);
 		assert.match(result.stdout, /"confidence": "low"/);
+		assert.match(result.stdout, /"next_steps"/);
 		const parsed = JSON.parse(result.stdout);
 		assert.equal(parsed.answer.safe_to_write, undefined);
+	});
+
+	it("prints person.name human extras in human mode", async () => {
+		const result = await run({
+			argv: ["person", "name", "--email", "ada@example.com"],
+			body: {
+				ok: true,
+				answer: { confidence: "medium" },
+				result: {
+					first_name: "Ada",
+					last_name: "L",
+					quality_flags: ["surname_initial_only"],
+				},
+				options: [
+					{
+						endpoint: "/v1/person/name",
+						path: "coverage",
+						description: "Broader name sources",
+						est_credits: 3.2,
+					},
+				],
+				agent_guidance: "Show options and let the user choose the path.",
+				next_steps: [{ action: "call_capability", endpoint: "/v1/person/b2b-social", reason: "Need profile" }],
+			},
+		});
+		assert.match(result.stdout, /"quality_flags"/);
+		assert.match(result.stdout, /Warning: quality_flags/);
+		assert.match(result.stdout, /Options/);
+		assert.match(result.stdout, /~3.2 credits/);
+		assert.match(result.stdout, /Agent: Show options/);
+		assert.match(result.stdout, /Next:/);
 	});
 
 	it("prints Next: hints in human mode", async () => {

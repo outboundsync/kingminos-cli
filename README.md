@@ -40,11 +40,11 @@ Confidence on the response (`answer.confidence`: `high` | `medium` | `low`) is t
 
 ## JSON output
 
-`--json` prints the response body only (pretty JSON when the body is JSON). It omits the human `Confidence:` / `Credits spent:` lines and `Next:` hints. Errors still go to stderr.
+`--json` prints the response body only (pretty JSON when the body is JSON). It omits human follow-ups (`Confidence:` / `Credits spent:`, `options[]`, `quality_flags` warnings, `agent_guidance`, and `Next:` hints). Errors still go to stderr. `safe_to_write` is stripped in all modes; everything else passes through unchanged.
 
 ## Credits
 
-Billing is for delivered answers. The CLI prints `usage.credits.spent` from the response and does not hardcode prices. `next_steps[].est_credits` is whatever the API returned.
+Billing is for delivered answers. The CLI prints `usage.credits.spent` from the response and does not hardcode prices. `options[].est_credits` and `next_steps[].est_credits` are whatever the API returned.
 
 ## Exit codes
 
@@ -86,6 +86,7 @@ Discovery and account helpers:
 kingminos providers
 kingminos capabilities
 kingminos recipes
+kingminos recipes guidance
 kingminos runs get <run_id>
 kingminos company domain --domain example.com --json
 ```

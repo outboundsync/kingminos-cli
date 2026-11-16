@@ -33,6 +33,8 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return { method: "GET", path: "/v1/capabilities", headers: {}, auth: true };
 		case "recipes":
 			return { method: "GET", path: "/v1/recipes", headers: {}, auth: true };
+		case "recipes.guidance":
+			return { method: "GET", path: "/v1/recipes/guidance", headers: {}, auth: false };
 		case "company.resolve":
 			return capabilityPost("/v1/company/resolve", resolveBody(flags, loader), flags);
 		case "company.domain":

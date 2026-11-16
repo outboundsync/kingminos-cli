@@ -54,6 +54,7 @@ describe("resolveCommand", () => {
 		{ argv: ["providers"], name: "providers" },
 		{ argv: ["capabilities"], name: "capabilities" },
 		{ argv: ["recipes"], name: "recipes" },
+		{ argv: ["recipes", "guidance"], name: "recipes.guidance" },
 		{ argv: ["company", "resolve"], name: "company.resolve" },
 		{ argv: ["company", "domain"], name: "company.domain" },
 		{ argv: ["company", "hierarchy"], name: "company.hierarchy" },
@@ -134,6 +135,9 @@ describe("resolveCommand", () => {
 	it("rejects unexpected extra arguments", () => {
 		assert.throws(() => resolveCommand(["health", "extra"]), {
 			message: /health does not take arguments/,
+		});
+		assert.throws(() => resolveCommand(["recipes", "extra"]), {
+			message: /recipes commands: guidance/,
 		});
 	});
 });

@@ -14,7 +14,7 @@ import {
 	parseArgv,
 	resolveCommand,
 } from "./parse";
-import { applyPriority, formatDecisionNotes, formatNextStepsHints, parsePriority } from "./priority";
+import { applyPriority, formatHumanResponseExtras, parsePriority } from "./priority";
 import { UsageError } from "./usage";
 import { getPackageVersion } from "./version";
 
@@ -23,7 +23,13 @@ export { BASE_URL_ENV, DEFAULT_BASE_URL, EXIT, TOKEN_ENV } from "./const";
 export { ROOT_HELP } from "./help";
 export { classifyHttpError } from "./http-error";
 export { assertKnownFlags, parseArgv, resolveCommand } from "./parse";
-export { formatDecisionNotes } from "./priority";
+export {
+	formatAgentGuidance,
+	formatDecisionNotes,
+	formatHumanResponseExtras,
+	formatOptionsHints,
+	formatQualityFlagsWarning,
+} from "./priority";
 export { stripSafeToWrite } from "./sanitize";
 
 export interface CliIo {
@@ -98,8 +104,7 @@ async function runCliUnsafe(io: CliIo): Promise<number> {
 	io.stdout(redact(formatted, secrets));
 	if (!asJson) {
 		const parsedBody = parseJson(response.text);
-		io.stdout(redact(formatDecisionNotes(parsedBody), secrets));
-		io.stdout(redact(formatNextStepsHints(parsedBody), secrets));
+		io.stdout(redact(formatHumanResponseExtras(parsedBody), secrets));
 	}
 	return EXIT.ok;
 }
@@ -196,8 +201,7 @@ async function runBatch(
 		} else {
 			io.stdout(redact(`# row ${index + 1}\n${formatted}`, secrets));
 			const parsedBody = parseJson(response.text);
-			io.stdout(redact(formatDecisionNotes(parsedBody), secrets));
-			io.stdout(redact(formatNextStepsHints(parsedBody), secrets));
+			io.stdout(redact(formatHumanResponseExtras(parsedBody), secrets));
 		}
 	}
 	return worst;

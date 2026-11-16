@@ -14,6 +14,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 	providers: new Set(),
 	capabilities: new Set(),
 	recipes: new Set(),
+	"recipes.guidance": new Set(),
 	batch: new Set(["file", "priority", "explain", "schema", "dry-run", "path"]),
 	"company.resolve": new Set([
 		"body",
@@ -298,6 +299,7 @@ export type Command =
 	| { name: "providers" }
 	| { name: "capabilities" }
 	| { name: "recipes" }
+	| { name: "recipes.guidance" }
 	| { name: "batch"; capability: BatchCapability }
 	| { name: "company.resolve" }
 	| { name: "company.domain" }
@@ -410,11 +412,21 @@ export function resolveCommand(positionals: string[]): Command {
 		case "openapi":
 		case "providers":
 		case "capabilities":
-		case "recipes":
 			if (mid !== undefined) {
 				throw new UsageError(`${head} does not take arguments`);
 			}
 			return { name: head };
+		case "recipes":
+			if (mid === "guidance") {
+				if (tail !== undefined) {
+					throw new UsageError("recipes guidance does not take positional arguments");
+				}
+				return { name: "recipes.guidance" };
+			}
+			if (mid !== undefined) {
+				throw new UsageError("recipes commands: guidance");
+			}
+			return { name: "recipes" };
 		case "batch":
 			return resolveBatch(mid, tail);
 		case "company":

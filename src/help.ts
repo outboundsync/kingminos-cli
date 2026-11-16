@@ -18,7 +18,7 @@ API:
 Global flags:
   --token <key>       Bearer token (overrides ${TOKEN_ENV})
   --base-url <url>    API host
-  --json              Print the response body only (no Next: hints)
+  --json              Print the response body only (no human hints after it)
   --help, -h          This help
 
 Commands (live OpenAPI only):
@@ -27,6 +27,7 @@ Commands (live OpenAPI only):
   providers                      GET  /v1/providers
   capabilities                   GET  /v1/capabilities
   recipes                        GET  /v1/recipes
+  recipes guidance               GET  /v1/recipes/guidance
   company resolve                POST /v1/company/resolve
   company domain                 POST /v1/company/domain
   company hierarchy              POST /v1/company/hierarchy
@@ -99,6 +100,12 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 GET /v1/recipes
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Machine-readable chaining workflows. Ask speed / balance / accuracy / coverage before a bulk run. Max yield = coverage.
+`;
+		case "recipes.guidance":
+			return `kingminos recipes guidance
+
+GET /v1/recipes/guidance
+No auth. Confidence levels, path floors, next steps, and billing reference (same as API guide links).
 `;
 		case "batch":
 			return `kingminos batch <company|person|email> <command> --file <path|-> --priority speed|balance|accuracy|coverage
@@ -285,6 +292,7 @@ Body fields: --email | --linkedin-url (one required)
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
              --cache bypass --cache-control no-cache|no-store
 Delivered answers are billed; misses are not. See usage.credits.spent.
+Human output after the JSON also prints options[], quality_flags warnings, next_steps[], and agent_guidance when the API returns them.
 `;
 		case "person.b2b_social":
 			return `kingminos person b2b-social

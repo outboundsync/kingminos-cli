@@ -63,7 +63,8 @@ Websearch is house-only (no credentials command).
 LeadMagic, Wiza, Findymail, and AI Ark are house-key vendors (managed when no key is stored).
 Other Your Keys vendors stay unset until stored.
 prospeo, apollo, and lemlist are off the default path (routing.only or an explicit order).
-cognism, lusha, starbridge, clay, databar, quickenrich, getleads, and blitzapi store a key only (no routing hop).
+quickenrich and blitzapi join the person phone stack once a key is stored.
+cognism, lusha, starbridge, clay, databar, and getleads store a key only (no routing hop).
 snovio is OAuth (client id and secret) and has no routing hop.
 
 Exit codes: 0 ok · 1 usage · 2 unauthorized (401) · 3 out of credits (402)
@@ -125,10 +126,12 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email --name --domain --website --dry-run --external-ref
              --min-confidence high|medium|low
+             --path --preset (sent as routing.path / routing.preset)
              --priority speed|balance|accuracy|coverage
              --routing <json> --compliance <json> --schema-version 2
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --max-provider-credits <n>
 `;
 		case "company.domain":
 			return `kingminos company domain
@@ -145,7 +148,8 @@ Body fields: --email --name --company-name --domain --website
              --routing <json> --compliance <json> --schema-version 2
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --cache bypass --cache-control no-cache|no-store
+             --max-provider-credits <n> --cache bypass
+             --cache-control no-cache|no-store
 `;
 		case "company.b2b_social":
 			return `kingminos company b2b-social
@@ -154,8 +158,11 @@ POST /v1/company/b2b-social
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Decide the company's own B2B social page URL (result.linkedin_url), or null.
-Subject is domain, website, email, or name. Name-only is allowed.
+Subject is --domain, --website, --email, or --name. Name-only is allowed:
+name to domain runs on --path accuracy|coverage, or on any path with --hint.
+--path speed is the bulk-list path (homepage-first, then ranked search).
 Delivered answers are billed; misses are not. See usage.credits.spent.
+Do not use company resolve for a B2B social page.
 
 Body fields: --email --name --domain --website --linkedin-url
              --hint --country
@@ -165,6 +172,7 @@ Body fields: --email --name --domain --website --linkedin-url
              --routing <json> --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --max-provider-credits <n>
 `;
 		case "company.icon":
 			return `kingminos company icon
@@ -192,7 +200,8 @@ Body fields: --email --name --domain --website
              --routing <json> --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --cache bypass --cache-control no-cache|no-store
+             --max-provider-credits <n> --cache bypass
+             --cache-control no-cache|no-store
 `;
 		case "company.x_account":
 			return `kingminos company x-account
@@ -201,7 +210,9 @@ POST /v1/company/x-account
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Decide the company's own X account URL (result.x_url), or null.
-Subject is domain, website, email, or name. Name-only is allowed.
+Subject is --domain, --website, --email, or --name. Name-only is allowed,
+but name to domain runs on --path accuracy|coverage only.
+--x-url is an agree-check on the decided handle, not a lookup input.
 Only a delivered floor-passing hit is billed; below-floor withholds and misses are not.
 See usage.credits.spent.
 
@@ -213,6 +224,7 @@ Body fields: --email --name --domain --website --x-url
              --routing <json> --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --max-provider-credits <n>
 `;
 		case "company.hierarchy":
 			return `kingminos company hierarchy
@@ -223,11 +235,11 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Body fields: --email --name --domain --website --country
              --path --preset --priority speed|balance|accuracy
              (coverage is invalid_routing)
-             --min-confidence high|medium|low
              --dry-run --external-ref
              --routing <json> --compliance <json>
              --body <json|@file|->
-Headers:     --explain default|full|minimal --schema 2
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --max-provider-credits <n>
 `;
 		case "person.verify_employment":
 			return `kingminos person verify-employment
@@ -240,10 +252,10 @@ Body fields: --email --first-name --last-name --linkedin-url
              --expected-company-domain --expected-company-name
              --expected-company-website --priority speed|balance|accuracy
              (coverage, value, auto, fast, and name_only are invalid_routing)
-             --min-confidence high|medium|low
              --dry-run --external-ref --routing <json> --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --max-provider-credits <n>
 `;
 		case "person.language":
 			return `kingminos person language

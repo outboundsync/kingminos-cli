@@ -42,9 +42,7 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 				cache: true,
 			});
 		case "company.hierarchy":
-			return capabilityPost("/v1/company/hierarchy", hierarchyBody(flags, loader), flags, {
-				idempotency: false,
-			});
+			return capabilityPost("/v1/company/hierarchy", hierarchyBody(flags, loader), flags);
 		case "company.b2b_social":
 			return capabilityPost("/v1/company/b2b-social", b2bSocialBody(flags, loader), flags);
 		case "company.icon":
@@ -121,16 +119,17 @@ function capabilityPost(
 	path: string,
 	body: Record<string, unknown>,
 	flags: FlagMap,
-	options?: { cache?: boolean; idempotency?: boolean },
+	options?: { cache?: boolean },
 ): BuiltRequest {
 	return {
 		method: "POST",
 		path,
 		headers: {
 			...explainSchemaHeaders(flags),
-			...(options?.idempotency === false
-				? {}
-				: optionalHeader("Idempotency-Key", flagString(flags, "idempotency-key"))),
+			...optionalHeader("Idempotency-Key", flagString(flags, "idempotency-key")),
+			// Honored on every capability route (kingminos-application src/app.ts parseHeaderMaxCredits);
+			// the OpenAPI spec does not list the header.
+			...optionalHeader("X-Router-Max-Provider-Credits", flagString(flags, "max-provider-credits")),
 			...(options?.cache
 				? {
 						...optionalHeader("X-Router-Cache", flagString(flags, "cache")),
@@ -161,7 +160,8 @@ function resolveBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown
 	assignString(body, "domain", flags);
 	assignString(body, "website", flags);
 	assignCommon(body, flags);
-	assignJson(body, "routing", flags);
+	// company.resolve reads path / preset from `routing` only (top-level keys are ignored).
+	assignRouting(body, flags, ["path", "preset"]);
 	assignJson(body, "compliance", flags);
 	assignString(body, "schema_version", flags, "schema-version");
 	return withPriority(body, flags, "company.resolve");
@@ -417,16 +417,22 @@ function emailVerifyBody(flags: FlagMap, loader: BodyLoader): Record<string, unk
 	return withPriority(body, flags, "email.verify");
 }
 
-/** `--routing <json>` plus `--path`, for capabilities that read the path from `routing` only. */
-function assignRouting(body: Record<string, unknown>, flags: FlagMap): void {
+/** `--routing <json>` plus `--path` (and optionally `--preset`), for capabilities that read them from `routing` only. */
+function assignRouting(
+	body: Record<string, unknown>,
+	flags: FlagMap,
+	keys: readonly ("path" | "preset")[] = ["path"],
+): void {
 	assignJson(body, "routing", flags);
-	const path = flagString(flags, "path");
-	if (path !== undefined) {
-		const routing =
-			body.routing && typeof body.routing === "object" && !Array.isArray(body.routing)
-				? (body.routing as Record<string, unknown>)
-				: {};
-		body.routing = { ...routing, path };
+	for (const key of keys) {
+		const value = flagString(flags, key);
+		if (value !== undefined) {
+			const routing =
+				body.routing && typeof body.routing === "object" && !Array.isArray(body.routing)
+					? (body.routing as Record<string, unknown>)
+					: {};
+			body.routing = { ...routing, [key]: value };
+		}
 	}
 }
 

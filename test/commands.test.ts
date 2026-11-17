@@ -265,6 +265,7 @@ describe("buildRequest", () => {
 				explain: "full",
 				schema: "2",
 				"idempotency-key": "abc",
+				"max-provider-credits": "4",
 				cache: "bypass",
 				"cache-control": "no-cache",
 			}),
@@ -274,10 +275,22 @@ describe("buildRequest", () => {
 			"X-Router-Explain": "full",
 			"X-Router-Schema": "2",
 			"Idempotency-Key": "abc",
+			"X-Router-Max-Provider-Credits": "4",
 			"X-Router-Cache": "bypass",
 			"Cache-Control": "no-cache",
 		});
-		assert.equal(request.headers["X-Router-Max-Provider-Credits"], undefined);
+	});
+
+	it("sends company resolve --path / --preset inside routing", () => {
+		const request = buildRequest(
+			{ name: "company.resolve" },
+			flags({ email: "ada@example.com", path: "accuracy", preset: "zi_stamp" }),
+			loader,
+		);
+		assert.deepEqual(request.body, {
+			email: "ada@example.com",
+			routing: { path: "accuracy", preset: "zi_stamp" },
+		});
 	});
 
 	it("builds runs.get and subject erase", () => {
@@ -334,13 +347,14 @@ describe("buildRequest", () => {
 		);
 	});
 
-	it("does not send Idempotency-Key for company.hierarchy", () => {
+	it("sends Idempotency-Key and max-credits headers for company.hierarchy", () => {
 		const request = buildRequest(
 			{ name: "company.hierarchy" },
-			flags({ domain: "example.com", "idempotency-key": "abc" }),
+			flags({ domain: "example.com", "idempotency-key": "abc", "max-provider-credits": "1" }),
 			loader,
 		);
-		assert.equal(request.headers["Idempotency-Key"], undefined);
+		assert.equal(request.headers["Idempotency-Key"], "abc");
+		assert.equal(request.headers["X-Router-Max-Provider-Credits"], "1");
 	});
 
 	it("sends cache headers for person.language", () => {

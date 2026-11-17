@@ -32,6 +32,9 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"explain",
 		"schema",
 		"priority",
+		"path",
+		"preset",
+		"max-provider-credits",
 	]),
 	"company.domain": new Set([
 		"body",
@@ -62,6 +65,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"company.b2b_social": new Set([
 		"body",
@@ -83,6 +87,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"explain",
 		"schema",
 		"priority",
+		"max-provider-credits",
 	]),
 	"company.icon": new Set([
 		"body",
@@ -119,6 +124,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"company.x_account": new Set([
 		"body",
@@ -140,6 +146,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"explain",
 		"schema",
 		"priority",
+		"max-provider-credits",
 	]),
 	"company.hierarchy": new Set([
 		"body",
@@ -152,12 +159,13 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"preset",
 		"dry-run",
 		"external-ref",
-		"min-confidence",
 		"routing",
 		"compliance",
 		"explain",
 		"schema",
 		"priority",
+		"idempotency-key",
+		"max-provider-credits",
 	]),
 	"person.verify_employment": new Set([
 		"body",
@@ -171,13 +179,13 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"expected-company-website",
 		"dry-run",
 		"external-ref",
-		"min-confidence",
 		"routing",
 		"compliance",
 		"idempotency-key",
 		"explain",
 		"schema",
 		"priority",
+		"max-provider-credits",
 	]),
 	"person.language": new Set([
 		"body",

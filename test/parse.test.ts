@@ -159,8 +159,14 @@ describe("assertKnownFlags", () => {
 		assert.throws(() => assertKnownFlags("health", { "min-confidence": "high" }), {
 			message: /unknown flag --min-confidence/,
 		});
-		assert.throws(() => assertKnownFlags("company.hierarchy", { "idempotency-key": "abc" }), {
-			message: /unknown flag --idempotency-key/,
+		// The API parses min_confidence on these two but never applies it.
+		assert.throws(() => assertKnownFlags("company.hierarchy", { "min-confidence": "high" }), {
+			message: /unknown flag --min-confidence/,
 		});
+		assert.throws(() => assertKnownFlags("person.verify_employment", { "min-confidence": "high" }), {
+			message: /unknown flag --min-confidence/,
+		});
+		assertKnownFlags("company.hierarchy", { "idempotency-key": "abc", "max-provider-credits": "1" });
+		assertKnownFlags("company.resolve", { path: "speed", preset: "zi_stamp", "max-provider-credits": "2" });
 	});
 });

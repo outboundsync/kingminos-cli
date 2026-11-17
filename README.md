@@ -104,7 +104,14 @@ npm ci
 npm run build
 node dist/kingminos.js --help
 npm run ci
+npm run check:api-coverage
 ```
+
+## API sync
+
+The commands follow the live KingMinos contract, [`openapi.json`](https://api.kingminos.com/openapi.json). Every 6 hours the [API sync](.github/workflows/api-sync.yml) workflow compares it with `api-sync/openapi.snapshot.json`. When it changed, a Cursor CLI agent ([prompt](.github/prompts/api-sync.md)) updates the commands, help, tests and examples, the workflow writes the new snapshot, and it opens or updates a PR on `chore/api-sync`. A human reviews and merges every sync PR; merging publishes a new npm version. See [`api-sync/README.md`](api-sync/README.md).
+
+`npm run check:api-coverage` (in CI) fails when an in-scope operation in the snapshot has no command in `src/commands.ts`, or a command targets an operation the snapshot doesn't have. In scope means every Bearer operation except `/v1/auth`, `/v1/account`, `/v1/admin`, discovery paths and the reviewed exclusions (webhooks, events, balance, usage, credential listing, feedback) listed with reasons in [`scripts/check-api-coverage.mjs`](scripts/check-api-coverage.mjs). Leaving a new operation out of the CLI means adding it there. Until the first sync PR adds the snapshot, the check skips.
 
 ## Releases & versioning
 

@@ -29,7 +29,8 @@
   "scripts": {
     "build": "tsup",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "npm run build && node --experimental-strip-types --test test/*.test.ts && node --test test/release-calver.test.mjs",
+    "test": "npm run build && node --experimental-strip-types --test test/*.test.ts && node --test test/*.test.mjs",
+    "check:api-coverage": "node scripts/check-api-coverage.mjs",
     "ci": "npm run typecheck && npm run test",
     "release:preview": "node scripts/release-calver.mjs --dry-run"
   },

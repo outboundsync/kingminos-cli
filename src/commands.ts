@@ -27,6 +27,8 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return { method: "GET", path: "/health", headers: {}, auth: false };
 		case "openapi":
 			return { method: "GET", path: "/openapi.yaml", headers: {}, auth: false };
+		case "pricing":
+			return { method: "GET", path: "/v1/pricing", headers: {}, auth: false };
 		case "providers":
 			return { method: "GET", path: "/v1/providers", headers: {}, auth: true };
 		case "capabilities":

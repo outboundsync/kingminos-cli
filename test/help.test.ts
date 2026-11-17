@@ -89,6 +89,17 @@ describe("kingminos CLI", () => {
 		assert.doesNotMatch(result.stdout, /no coverage/);
 	});
 
+	it("lists pricing and prints its help", () => {
+		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
+		assert.match(root.stdout, /pricing\s+GET\s+\/v1\/pricing/);
+		assert.match(root.stdout, /kingminos pricing prints the live table/);
+		const result = spawnSync(process.execPath, [cli, "pricing", "--help"], { encoding: "utf8", cwd: repoRoot });
+		assert.equal(result.status, 0);
+		assert.match(result.stdout, /GET \/v1\/pricing \(no auth\)/);
+		assert.match(result.stdout, /--json/);
+		assert.doesNotMatch(result.stdout, /\d+ credits/);
+	});
+
 	it("lists person email and email verify and prints their help", () => {
 		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
 		assert.match(root.stdout, /person email\s+POST \/v1\/person\/email/);

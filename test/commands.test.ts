@@ -25,6 +25,15 @@ describe("buildRequest", () => {
 		});
 	});
 
+	it("builds the public pricing GET without auth", () => {
+		assert.deepEqual(buildRequest({ name: "pricing" }, {}, loader), {
+			method: "GET",
+			path: "/v1/pricing",
+			headers: {},
+			auth: false,
+		});
+	});
+
 	it("builds discovery GETs", () => {
 		assert.equal(buildRequest({ name: "providers" }, {}, loader).path, "/v1/providers");
 		assert.equal(buildRequest({ name: "capabilities" }, {}, loader).path, "/v1/capabilities");

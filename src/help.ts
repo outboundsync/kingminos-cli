@@ -59,7 +59,7 @@ Credits:
   The CLI does not hardcode prices.
 
 Your Keys providers: ${BYOK_PROVIDERS.join(", ")}
-Websearch is house-only (no credentials command).
+Websearch and favicon are house-only (no credentials command).
 LeadMagic, Wiza, Findymail, and AI Ark are house-key vendors (managed when no key is stored).
 Other Your Keys vendors stay unset until stored.
 prospeo, apollo, and lemlist are off the default path (routing.only or an explicit order).
@@ -316,7 +316,8 @@ Body fields: --email | --linkedin-url (one required)
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --cache bypass --cache-control no-cache|no-store
+             --max-provider-credits <n> --cache bypass
+             --cache-control no-cache|no-store
 Delivered answers are billed; misses are not. See usage.credits.spent.
 `;
 		case "person.name":
@@ -337,7 +338,8 @@ Body fields: --email | --linkedin-url (one required)
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --cache bypass --cache-control no-cache|no-store
+             --max-provider-credits <n> --cache bypass
+             --cache-control no-cache|no-store
 Delivered answers are billed; misses are not. See usage.credits.spent.
 Human output after the JSON also prints options[], quality_flags warnings, next_steps[], and agent_guidance when the API returns them.
 `;
@@ -358,7 +360,8 @@ Body fields: --email (required)
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --cache bypass --cache-control no-cache|no-store
+             --max-provider-credits <n> --cache bypass
+             --cache-control no-cache|no-store
 Delivered answers are billed; misses are not. See usage.credits.spent.
 `;
 		case "person.email":
@@ -377,7 +380,8 @@ Body fields: --first-name --last-name --company-domain (the name route)
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --cache bypass --cache-control no-cache|no-store
+             --max-provider-credits <n> --cache bypass
+             --cache-control no-cache|no-store
 Only a delivered email is billed; misses, conflicts and catch-alls are not.
 See usage.credits.spent.
 `;
@@ -396,6 +400,7 @@ Body fields: --email (required)
              --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --max-provider-credits <n>
 Only a delivered valid or invalid is billed; catch_all and unknown are not.
 See usage.credits.spent.
 `;
@@ -413,7 +418,7 @@ Headers: --explain default|full|minimal --schema 2
 PUT /v1/credentials/{provider}
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Providers: ${BYOK_PROVIDERS.join(", ")}
-Websearch is house-only (byok_not_supported).
+Websearch and favicon are house-only (byok_not_supported).
 
 zoominfo, snovio: --client-id --client-secret  → { clientId, clientSecret }
 others:             --api-key                    → { apiKey }

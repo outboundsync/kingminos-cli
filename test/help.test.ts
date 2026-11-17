@@ -48,6 +48,16 @@ describe("kingminos CLI", () => {
 		assert.doesNotMatch(result.stdout, /--cache /);
 	});
 
+	it("lists person title and prints its credit ceiling", () => {
+		const result = spawnSync(process.execPath, [cli, "person", "title", "--help"], {
+			encoding: "utf8",
+			cwd: repoRoot,
+		});
+		assert.equal(result.status, 0);
+		assert.match(result.stdout, /POST \/v1\/person\/title/);
+		assert.match(result.stdout, /--max-provider-credits <n>/);
+	});
+
 	it("lists person name and prints its help", () => {
 		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
 		assert.match(root.stdout, /person name\s+POST \/v1\/person\/name/);
@@ -58,6 +68,7 @@ describe("kingminos CLI", () => {
 		assert.equal(result.status, 0);
 		assert.match(result.stdout, /POST \/v1\/person\/name/);
 		assert.match(result.stdout, /--email \| --linkedin-url \(one required\)/);
+		assert.match(result.stdout, /--max-provider-credits <n>/);
 	});
 
 	it("lists person b2b-social and prints its help", () => {
@@ -74,6 +85,7 @@ describe("kingminos CLI", () => {
 		assert.match(result.stdout, /--email \(required\)/);
 		assert.match(result.stdout, /speed\|balance\|accuracy\|coverage/);
 		assert.match(result.stdout, /--company-domain/);
+		assert.match(result.stdout, /--max-provider-credits <n>/);
 		assert.doesNotMatch(result.stdout, /no coverage/);
 	});
 
@@ -87,12 +99,14 @@ describe("kingminos CLI", () => {
 		});
 		assert.equal(find.status, 0);
 		assert.match(find.stdout, /--first-name --last-name --company-domain/);
+		assert.match(find.stdout, /--max-provider-credits <n>/);
 		const verify = spawnSync(process.execPath, [cli, "email", "verify", "--help"], {
 			encoding: "utf8",
 			cwd: repoRoot,
 		});
 		assert.equal(verify.status, 0);
 		assert.match(verify.stdout, /valid \| invalid \| catch_all \| unknown/);
+		assert.match(verify.stdout, /--max-provider-credits <n>/);
 		assert.doesNotMatch(verify.stdout, /--cache /);
 	});
 });

@@ -252,6 +252,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"person.name": new Set([
 		"body",
@@ -274,6 +275,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"person.b2b_social": new Set([
 		"body",
@@ -295,6 +297,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"person.email": new Set([
 		"body",
@@ -315,6 +318,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"email.verify": new Set([
 		"body",
@@ -329,6 +333,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"explain",
 		"schema",
 		"priority",
+		"max-provider-credits",
 	]),
 	"runs.get": new Set(["explain", "schema"]),
 	"credentials.put": new Set(["body", "api-key", "client-id", "client-secret"]),

@@ -330,10 +330,14 @@ describe("buildRequest", () => {
 		assert.deepEqual(snov.body, { clientId: "id", clientSecret: "sec" });
 	});
 
-	it("rejects websearch credentials (house-only)", () => {
+	it("rejects websearch and favicon credentials (house-only)", () => {
 		assert.throws(
 			() => buildRequest({ name: "credentials.put", provider: "websearch" }, {}, loader),
 			{ message: /websearch is house-only/ },
+		);
+		assert.throws(
+			() => buildRequest({ name: "credentials.put", provider: "favicon" }, {}, loader),
+			{ message: /favicon is house-only/ },
 		);
 	});
 
@@ -355,6 +359,27 @@ describe("buildRequest", () => {
 		);
 		assert.equal(request.headers["Idempotency-Key"], "abc");
 		assert.equal(request.headers["X-Router-Max-Provider-Credits"], "1");
+	});
+
+	it("sends X-Router-Max-Provider-Credits on the routes that declare it", () => {
+		const cases = [
+			{ name: "person.title" as const, flags: { email: "ada@example.com" } },
+			{ name: "person.name" as const, flags: { email: "ada@example.com" } },
+			{ name: "person.b2b_social" as const, flags: { email: "ada@example.com" } },
+			{
+				name: "person.email" as const,
+				flags: { "first-name": "Ada", "last-name": "Lovelace", "company-domain": "example.com" },
+			},
+			{ name: "email.verify" as const, flags: { email: "ada@example.com" } },
+		];
+		for (const entry of cases) {
+			const request = buildRequest(
+				{ name: entry.name },
+				flags({ ...entry.flags, "max-provider-credits": "2" }),
+				loader,
+			);
+			assert.equal(request.headers["X-Router-Max-Provider-Credits"], "2");
+		}
 	});
 
 	it("sends cache headers for person.language", () => {

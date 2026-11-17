@@ -363,3 +363,78 @@ describe("runCli", () => {
 		assert.equal(headers.get("x-kingminos-client"), "cli");
 	});
 });
+
+describe("pricing", () => {
+	// Shape of GET /v1/pricing (kingminos.pricing.v1); the numbers are made up.
+	const pricing = {
+		ok: true,
+		schema: "kingminos.pricing.v1",
+		pricing_version: "abc123",
+		currency: "USD",
+		credit_unit: "credit",
+		notes: ["A miss bills 0."],
+		capabilities: [
+			{
+				id: "company.resolve",
+				default_path: "balance",
+				paths: [
+					{ name: "speed", cap: 7, delivered: { min: 0, typical: null, max: 7 }, byok: 0.3, miss: 0 },
+					{ name: "balance", cap: 9, delivered: { min: 4, typical: 4, max: 4 }, byok: 0.3, miss: 0 },
+				],
+				opt_in_hops: [],
+			},
+			{
+				id: "person.title",
+				outcome_priced: true,
+				default_path: "balance",
+				paths: [{ name: "balance", cap: 8, delivered: 6.5, byok: 0.3, miss: 0 }],
+				opt_in_hops: [{ provider: "wiza", price: 11, note: "Off every default path." }],
+			},
+		],
+		plans: { payg: { per_credit_usd: 0.9 } },
+	};
+
+	it("prints a table of delivered prices without an API key", async () => {
+		const result = await run({ argv: ["pricing"], env: {}, body: pricing });
+		assert.equal(result.code, EXIT.ok);
+		assert.equal(result.calls[0]?.url, "https://api.kingminos.com/v1/pricing");
+		assert.equal(result.calls[0]?.method, "GET");
+		assert.equal(new Headers(result.calls[0]?.headers).get("authorization"), null);
+		assert.equal(
+			result.stdout,
+			[
+				"Credits per delivered answer, pricing_version abc123",
+				"",
+				"CAPABILITY       PATH                DELIVERED",
+				"company.resolve  speed               0–7",
+				"                 balance (default)   4",
+				"person.title     balance (default)   6.5",
+				"                 +wiza (opt-in hop)  11",
+				"",
+				"A miss bills 0.",
+				"",
+				"Plans, BYOK fees and the full table: kingminos pricing --json",
+				"",
+			].join("\n"),
+		);
+		assert.equal(result.stderr, "");
+	});
+
+	it("prints the raw JSON with --json", async () => {
+		const result = await run({ argv: ["pricing", "--json"], env: {}, body: pricing });
+		assert.equal(result.code, EXIT.ok);
+		assert.deepEqual(JSON.parse(result.stdout), pricing);
+	});
+
+	it("falls back to JSON when the body is not a pricing table", async () => {
+		const result = await run({ argv: ["pricing"], env: {}, body: { ok: true, capabilities: [{ id: 1 }] } });
+		assert.equal(result.code, EXIT.ok);
+		assert.deepEqual(JSON.parse(result.stdout), { ok: true, capabilities: [{ id: 1 }] });
+	});
+
+	it("does not send a token even when one is set", async () => {
+		const result = await run({ argv: ["pricing"], body: pricing });
+		assert.equal(result.code, EXIT.ok);
+		assert.equal(new Headers(result.calls[0]?.headers).get("authorization"), null);
+	});
+});

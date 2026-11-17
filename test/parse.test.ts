@@ -51,6 +51,7 @@ describe("resolveCommand", () => {
 	const cases: Array<{ argv: string[]; name: string }> = [
 		{ argv: ["health"], name: "health" },
 		{ argv: ["openapi"], name: "openapi" },
+		{ argv: ["pricing"], name: "pricing" },
 		{ argv: ["providers"], name: "providers" },
 		{ argv: ["capabilities"], name: "capabilities" },
 		{ argv: ["recipes"], name: "recipes" },
@@ -141,6 +142,9 @@ describe("resolveCommand", () => {
 		assert.throws(() => resolveCommand(["health", "extra"]), {
 			message: /health does not take arguments/,
 		});
+		assert.throws(() => resolveCommand(["pricing", "company.resolve"]), {
+			message: /pricing does not take arguments/,
+		});
 		assert.throws(() => resolveCommand(["recipes", "extra"]), {
 			message: /recipes commands: guidance/,
 		});
@@ -150,6 +154,13 @@ describe("resolveCommand", () => {
 describe("assertKnownFlags", () => {
 	it("allows global --json on any command", () => {
 		assert.doesNotThrow(() => assertKnownFlags("health", { json: true, token: "osr_x" }));
+	});
+
+	it("allows only --json (and globals) on pricing", () => {
+		assert.doesNotThrow(() => assertKnownFlags("pricing", { json: true }));
+		assert.throws(() => assertKnownFlags("pricing", { priority: "speed" }), {
+			message: /unknown flag --priority/,
+		});
 	});
 
 	it("rejects a capability flag on the wrong command", () => {

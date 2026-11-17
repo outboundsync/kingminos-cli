@@ -25,6 +25,7 @@ function spec(extraOps = []) {
 	add('GET', '/health', undefined);
 	add('GET', '/openapi.yaml', undefined);
 	add('GET', '/v1/recipes/guidance', []);
+	add('GET', '/v1/pricing', []);
 	add('GET', '/v1/account', undefined);
 	add('POST', '/v1/admin/privacy/erase', BEARER);
 	for (const key of Object.keys(EXCLUDED_OPERATIONS)) {
@@ -132,6 +133,19 @@ describe('check-api-coverage', () => {
 		});
 		assert.deepEqual(result.errors, []);
 		assert.equal(result.inScope, 2);
+	});
+
+	it('accepts a command for a public no-auth operation without putting it in scope', () => {
+		const pricing = `		case "pricing":
+			return { method: "GET", path: "/v1/pricing", headers: {}, auth: false };`;
+		const result = checkCoverage({
+			spec: spec(OPS),
+			commandsSource: commandsSource([HEALTH, pricing, X_ACCOUNT, RUNS_GET]),
+			helpSource: HELP,
+		});
+		assert.deepEqual(result.errors, []);
+		assert.equal(result.inScope, 2);
+		assert.equal(result.commands, 4);
 	});
 
 	it('fails on a missing command and names the expected command', () => {

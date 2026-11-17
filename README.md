@@ -44,7 +44,7 @@ Confidence on the response (`answer.confidence`: `high` | `medium` | `low`) is t
 
 ## Credits
 
-Billing is for delivered answers. The CLI prints `usage.credits.spent` from the response and does not hardcode prices. `options[].est_credits` and `next_steps[].est_credits` are whatever the API returned.
+Billing is for delivered answers. The CLI prints `usage.credits.spent` from the response and does not hardcode prices. `kingminos pricing` prints the live public pricing table (`GET /v1/pricing`, no API key needed): credits per delivered answer for each capability path. `kingminos pricing --json` prints the full response, with plans and BYOK fees. `options[].est_credits` and `next_steps[].est_credits` are whatever the API returned.
 
 ## Exit codes
 
@@ -84,6 +84,7 @@ kingminos email verify --email ada@example.com --priority accuracy
 Discovery and account helpers:
 
 ```bash
+kingminos pricing
 kingminos providers
 kingminos capabilities
 kingminos recipes
@@ -108,9 +109,13 @@ npm run ci
 npm run check:api-coverage
 ```
 
+`src/reference.ts` is the command reference: each command's usage, summary, method, path and flags. The per-command flag allowlist is derived from it, and `test/reference.test.ts` fails if an entry disagrees with the request `buildRequest` sends, with `ROOT_HELP`, or with the command's `--help`.
+
+`commands.json` is the command reference as data, for the website's CLI docs: every command's id, usage, summary, method, OpenAPI path, flags (name, help, whether it is required, allowed values), whether it writes and whether it needs a key, sorted by id (schema `cli.commands.v1`, shared with the [OutboundSync CLI](https://github.com/outboundsync/outboundsync-cli)). It has no version or date, so it changes only when a command does. Read it from GitHub (`https://raw.githubusercontent.com/outboundsync/kingminos-cli/main/commands.json`) or the npm package (`kingminos/commands.json`). After changing `src/reference.ts`, run `npm run commands:json`; `test/commands-json.test.ts` fails when the committed file is out of date.
+
 ## API sync
 
-The commands follow the live KingMinos contract, [`openapi.json`](https://api.kingminos.com/openapi.json). Every 6 hours the [API sync](.github/workflows/api-sync.yml) workflow compares it with `api-sync/openapi.snapshot.json`. When it changed, a Cursor CLI agent ([prompt](.github/prompts/api-sync.md)) updates the commands, help, tests and examples, the workflow writes the new snapshot, and it opens or updates a PR on `chore/api-sync`. A human reviews and merges every sync PR; merging publishes a new npm version. See [`api-sync/README.md`](api-sync/README.md).
+The commands follow the live KingMinos contract, [`openapi.json`](https://api.kingminos.com/openapi.json). Every 6 hours the [API sync](.github/workflows/api-sync.yml) workflow compares it with `api-sync/openapi.snapshot.json`. When it changed, a Cursor CLI agent ([prompt](.github/prompts/api-sync.md)) updates the commands, help, tests and examples, the workflow writes the new snapshot and regenerates `commands.json`, and it opens or updates a PR on `chore/api-sync`. A human reviews and merges every sync PR; merging publishes a new npm version. See [`api-sync/README.md`](api-sync/README.md).
 
 `npm run check:api-coverage` (in CI) fails when an in-scope operation in the snapshot has no command in `src/commands.ts`, or a command targets an operation the snapshot doesn't have. In scope means every Bearer operation except `/v1/auth`, `/v1/account`, `/v1/admin`, discovery paths and the reviewed exclusions (webhooks, events, balance, usage, credential listing, feedback) listed with reasons in [`scripts/check-api-coverage.mjs`](scripts/check-api-coverage.mjs). Leaving a new operation out of the CLI means adding it there. Until the first sync PR adds the snapshot, the check skips.
 

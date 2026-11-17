@@ -24,6 +24,7 @@ Global flags:
 Commands (live OpenAPI only):
   health                         GET  /health
   openapi                        GET  /openapi.yaml
+  pricing                        GET  /v1/pricing
   providers                      GET  /v1/providers
   capabilities                   GET  /v1/capabilities
   recipes                        GET  /v1/recipes
@@ -56,7 +57,7 @@ Tiers:
 
 Credits:
   Billing is for delivered answers. Print usage.credits.spent from the response.
-  The CLI does not hardcode prices.
+  The CLI does not hardcode prices: kingminos pricing prints the live table.
 
 Your Keys providers: ${BYOK_PROVIDERS.join(", ")}
 Websearch and favicon are house-only (no credentials command).
@@ -85,6 +86,14 @@ GET /health (no auth)
 
 GET /openapi.yaml (no auth)
 Prints the live OpenAPI document.
+`;
+		case "pricing":
+			return `kingminos pricing
+
+GET /v1/pricing (no auth)
+The public pricing table: credits per delivered answer for each capability
+path, as a table. A miss bills 0. Every number comes from the API.
+  --json   Print the API response instead (adds plans, BYOK fees and caps)
 `;
 		case "providers":
 			return `kingminos providers
@@ -117,6 +126,9 @@ No auth. Confidence levels, path floors, next steps, and billing reference (same
 Client-side loop over JSONL (or a JSON array) of request bodies. Not a bulk API.
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Ask speed / balance / accuracy / coverage before a list run; --priority is required. Max yield = coverage.
+
+Headers:   --explain default|full|minimal --schema 2 (every row)
+No effect: --dry-run and --path (rows are sent as written; --priority sets routing.path)
 `;
 		case "company.resolve":
 			return `kingminos company resolve

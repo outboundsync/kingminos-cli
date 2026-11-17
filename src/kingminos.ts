@@ -14,13 +14,17 @@ import {
 	parseArgv,
 	resolveCommand,
 } from "./parse";
+import { formatPricingTable } from "./pricing";
 import { applyPriority, formatHumanResponseExtras, parsePriority } from "./priority";
 import { UsageError } from "./usage";
 import { getPackageVersion } from "./version";
 
 export { buildRequest } from "./commands";
+export { commandsJson, commandsJsonText } from "./commands-json";
+export { COMMAND_REFS } from "./reference";
+export { formatPricingTable } from "./pricing";
 export { BASE_URL_ENV, DEFAULT_BASE_URL, EXIT, TOKEN_ENV } from "./const";
-export { ROOT_HELP } from "./help";
+export { commandHelp, ROOT_HELP } from "./help";
 export { classifyHttpError } from "./http-error";
 export { assertKnownFlags, parseArgv, resolveCommand } from "./parse";
 export {
@@ -100,6 +104,13 @@ async function runCliUnsafe(io: CliIo): Promise<number> {
 	const asJson = flagBool(parsed.flags, "json") === true;
 	if (response.status >= 400) {
 		return writeHttpError(io, response.status, response.text, formatted, secrets, asJson);
+	}
+	if (command.name === "pricing" && !asJson) {
+		const table = formatPricingTable(parseJson(response.text));
+		if (table !== undefined) {
+			io.stdout(redact(table, secrets));
+			return EXIT.ok;
+		}
 	}
 	io.stdout(redact(formatted, secrets));
 	if (!asJson) {

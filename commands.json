@@ -1,0 +1,2207 @@
+{
+  "schema": "cli.commands.v1",
+  "cli": "kingminos",
+  "commands": [
+    {
+      "id": "batch",
+      "usage": "kingminos batch <company|person|email> <command> --file <path|-> --priority speed|balance|accuracy|coverage",
+      "summary": "Post each row of a JSONL file or JSON array to a capability, one call per row. Not a bulk API.",
+      "method": "POST",
+      "path": "/v1/{group}/{command}",
+      "flags": [
+        {
+          "name": "file",
+          "help": "JSONL or a JSON array of request bodies, or - for stdin.",
+          "required": true
+        },
+        {
+          "name": "priority",
+          "help": "Tier for every row, sent as routing.path. Ask which before a list run.",
+          "required": true,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "dry-run",
+          "help": "No effect: rows are sent as written. Set dry_run in a row instead.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "No effect: --priority sets routing.path on every row.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "capabilities",
+      "usage": "kingminos capabilities",
+      "summary": "List the capability catalog: inputs, outputs, hops and default routing.",
+      "method": "GET",
+      "path": "/v1/capabilities",
+      "flags": [],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.b2b_social",
+      "usage": "kingminos company b2b-social",
+      "summary": "Decide the company's own B2B social page URL, or null.",
+      "method": "POST",
+      "path": "/v1/company/b2b-social",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "Company page URL to agree-check (linkedin.com/company/...).",
+          "required": false
+        },
+        {
+          "name": "hint",
+          "help": "List or industry context for name-to-domain, e.g. \"UK PR agency\".",
+          "required": false
+        },
+        {
+          "name": "country",
+          "help": "ISO country, to disambiguate a company name.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path (speed, balance, accuracy, coverage).",
+          "required": false
+        },
+        {
+          "name": "preset",
+          "help": "Back-compat alias of --path.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.description",
+      "usage": "kingminos company description",
+      "summary": "Decide a usable English company description, or null.",
+      "method": "POST",
+      "path": "/v1/company/description",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path (speed, balance, accuracy, coverage).",
+          "required": false
+        },
+        {
+          "name": "preset",
+          "help": "Back-compat alias of --path.",
+          "required": false
+        },
+        {
+          "name": "max-chars",
+          "help": "Truncate at a sentence boundary, 80 to 500 characters.",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.domain",
+      "usage": "kingminos company domain",
+      "summary": "Decide the company's CRM domain and whether it is safe to write.",
+      "method": "POST",
+      "path": "/v1/company/domain",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "company-name",
+          "help": "Alias of --name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "city",
+          "help": "Company city.",
+          "required": false
+        },
+        {
+          "name": "state",
+          "help": "Company state or region.",
+          "required": false
+        },
+        {
+          "name": "country",
+          "help": "Company country.",
+          "required": false
+        },
+        {
+          "name": "postal-code",
+          "help": "Company postal code.",
+          "required": false
+        },
+        {
+          "name": "phone",
+          "help": "Company phone number.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "Company LinkedIn page URL (linkedin.com/company/...).",
+          "required": false
+        },
+        {
+          "name": "family-policy",
+          "help": "How alias and regional domains map to the CRM shape. Default collapse_brand.",
+          "required": false,
+          "values": [
+            "collapse_brand",
+            "separate_regional"
+          ]
+        },
+        {
+          "name": "path",
+          "help": "Routing path (speed, balance, accuracy, coverage).",
+          "required": false
+        },
+        {
+          "name": "preset",
+          "help": "Back-compat alias of --path.",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "schema-version",
+          "help": "Request schema version.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.hierarchy",
+      "usage": "kingminos company hierarchy",
+      "summary": "Decide the corporate family: immediate and ultimate parent, and subsidiaries.",
+      "method": "POST",
+      "path": "/v1/company/hierarchy",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "country",
+          "help": "Company country.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path (speed, balance, accuracy; coverage is invalid_routing).",
+          "required": false
+        },
+        {
+          "name": "preset",
+          "help": "Back-compat alias of --path.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.icon",
+      "usage": "kingminos company icon",
+      "summary": "Decide the company's hosted icon URL, or null.",
+      "method": "POST",
+      "path": "/v1/company/icon",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.resolve",
+      "usage": "kingminos company resolve",
+      "summary": "Resolve a company from an email, domain or website.",
+      "method": "POST",
+      "path": "/v1/company/resolve",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "schema-version",
+          "help": "Request schema version.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false
+        },
+        {
+          "name": "preset",
+          "help": "Back-compat alias of --path, sent as routing.preset.",
+          "required": false
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "company.x_account",
+      "usage": "kingminos company x-account",
+      "summary": "Decide the company's own X account URL, or null.",
+      "method": "POST",
+      "path": "/v1/company/x-account",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "An email address at the company.",
+          "required": false
+        },
+        {
+          "name": "name",
+          "help": "Company name.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "website",
+          "help": "Company website URL.",
+          "required": false
+        },
+        {
+          "name": "x-url",
+          "help": "Account URL to agree-check (https://x.com/{handle}). Not a lookup input.",
+          "required": false
+        },
+        {
+          "name": "hint",
+          "help": "List or industry context for name-to-domain, e.g. \"UK PR agency\".",
+          "required": false
+        },
+        {
+          "name": "country",
+          "help": "ISO country, to disambiguate a company name.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path (speed, balance, accuracy, coverage).",
+          "required": false
+        },
+        {
+          "name": "preset",
+          "help": "Back-compat alias of --path.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "credentials.delete",
+      "usage": "kingminos credentials delete <provider>",
+      "summary": "Revoke your stored key for a provider.",
+      "method": "DELETE",
+      "path": "/v1/credentials/{provider}",
+      "flags": [],
+      "write": true,
+      "auth": true
+    },
+    {
+      "id": "credentials.put",
+      "usage": "kingminos credentials put <provider>",
+      "summary": "Store your own key for a provider (Your Keys). The key is checked with the vendor first.",
+      "method": "PUT",
+      "path": "/v1/credentials/{provider}",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "api-key",
+          "help": "The provider API key (every provider except zoominfo and snovio).",
+          "required": false
+        },
+        {
+          "name": "client-id",
+          "help": "OAuth client id (zoominfo, snovio).",
+          "required": false
+        },
+        {
+          "name": "client-secret",
+          "help": "OAuth client secret (zoominfo, snovio).",
+          "required": false
+        }
+      ],
+      "write": true,
+      "auth": true
+    },
+    {
+      "id": "email.verify",
+      "usage": "kingminos email verify",
+      "summary": "Is this mailbox deliverable? valid, invalid, catch_all or unknown.",
+      "method": "POST",
+      "path": "/v1/email/verify",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The mailbox to check. Required unless --body sets it.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object (only / ignore).",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "health",
+      "usage": "kingminos health",
+      "summary": "Check that the API is up. No API key needed.",
+      "method": "GET",
+      "path": "/health",
+      "flags": [],
+      "write": false,
+      "auth": false
+    },
+    {
+      "id": "openapi",
+      "usage": "kingminos openapi",
+      "summary": "Print the live OpenAPI document. No API key needed.",
+      "method": "GET",
+      "path": "/openapi.yaml",
+      "flags": [],
+      "write": false,
+      "auth": false
+    },
+    {
+      "id": "person.b2b_social",
+      "usage": "kingminos person b2b-social",
+      "summary": "A person's B2B social profile URL from their email.",
+      "method": "POST",
+      "path": "/v1/person/b2b-social",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The person's email address. Required unless --body sets it.",
+          "required": false
+        },
+        {
+          "name": "first-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "last-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "Match-only: a resolved profile with another slug is rejected.",
+          "required": false
+        },
+        {
+          "name": "company-domain",
+          "help": "Match-only employer.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object (only / ignore).",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "person.email",
+      "usage": "kingminos person email",
+      "summary": "A person's verified work email, from a name and company domain or a LinkedIn URL.",
+      "method": "POST",
+      "path": "/v1/person/email",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "first-name",
+          "help": "First name, for the name route (with --last-name and --company-domain).",
+          "required": false
+        },
+        {
+          "name": "last-name",
+          "help": "Last name, for the name route.",
+          "required": false
+        },
+        {
+          "name": "company-domain",
+          "help": "Company domain, for the name route.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "The person's LinkedIn profile URL (the LinkedIn route).",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object (only / ignore).",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "person.language",
+      "usage": "kingminos person language",
+      "summary": "Can we engage this person in English, and if not, in what language?",
+      "method": "POST",
+      "path": "/v1/person/language",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The person's email address. Pass this or --linkedin-url.",
+          "required": false
+        },
+        {
+          "name": "first-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "last-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "The person's LinkedIn profile URL. Pass this or --email.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy"
+          ]
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "person.name",
+      "usage": "kingminos person name",
+      "summary": "A person's proper-cased first, last and full name.",
+      "method": "POST",
+      "path": "/v1/person/name",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The person's email address. Pass this or --linkedin-url.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "The person's LinkedIn profile URL. Pass this or --email.",
+          "required": false
+        },
+        {
+          "name": "phone",
+          "help": "Accepted, never looked up.",
+          "required": false
+        },
+        {
+          "name": "x-handle",
+          "help": "Accepted, never looked up.",
+          "required": false
+        },
+        {
+          "name": "last-name-fallback",
+          "help": "Fills result.last_name when no last name is found.",
+          "required": false
+        },
+        {
+          "name": "output",
+          "help": "Output options as a JSON object (salesforce_safe).",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object (only / ignore).",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "person.phone",
+      "usage": "kingminos person phone",
+      "summary": "One dialable phone number for a person, plus the ranked rest.",
+      "method": "POST",
+      "path": "/v1/person/phone",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The person's email address. Pass this or --linkedin-url.",
+          "required": false
+        },
+        {
+          "name": "first-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "last-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "The person's LinkedIn profile URL. Pass this or --email.",
+          "required": false
+        },
+        {
+          "name": "domain",
+          "help": "Company domain.",
+          "required": false
+        },
+        {
+          "name": "phone-types",
+          "help": "Comma-separated: mobile, landline, other, unknown. Omit for any type.",
+          "required": false
+        },
+        {
+          "name": "max-results",
+          "help": "Ranked-list size, 1 to 10. Default 3.",
+          "required": false
+        },
+        {
+          "name": "format",
+          "help": "Format that fills `number`. Default e164; every phone also has `formats`.",
+          "required": false,
+          "values": [
+            "e164",
+            "international",
+            "national",
+            "digits",
+            "digits_national"
+          ]
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object (only / ignore).",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "person.title",
+      "usage": "kingminos person title",
+      "summary": "A person's current job title, seniority and function.",
+      "method": "POST",
+      "path": "/v1/person/title",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The person's email address. Pass this or --linkedin-url.",
+          "required": false
+        },
+        {
+          "name": "first-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "last-name",
+          "help": "Match-only: rejects a profile that belongs to someone else.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "The person's LinkedIn profile URL. Pass this or --email.",
+          "required": false
+        },
+        {
+          "name": "company-domain",
+          "help": "Match-only current employer.",
+          "required": false
+        },
+        {
+          "name": "fields",
+          "help": "Comma-separated: title, seniority, function. Omit for all three.",
+          "required": false
+        },
+        {
+          "name": "path",
+          "help": "Routing path, sent as routing.path.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object (only / ignore).",
+          "required": false
+        },
+        {
+          "name": "skip-cache",
+          "help": "Skip the 30-day cache read. The fresh answer is still written.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "min-confidence",
+          "help": "Lowest confidence to accept. Omit for the path's floor.",
+          "required": false,
+          "values": [
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "cache",
+          "help": "Sent as the X-Router-Cache header.",
+          "required": false,
+          "values": [
+            "bypass"
+          ]
+        },
+        {
+          "name": "cache-control",
+          "help": "Sent as the Cache-Control header.",
+          "required": false,
+          "values": [
+            "no-cache",
+            "no-store"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy",
+            "coverage"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "person.verify_employment",
+      "usage": "kingminos person verify-employment",
+      "summary": "Verify whether to send to this person: are they still at the company?",
+      "method": "POST",
+      "path": "/v1/person/verify-employment",
+      "flags": [
+        {
+          "name": "body",
+          "help": "Request body as JSON, @file, or - for stdin. Other flags set fields on top of it.",
+          "required": false
+        },
+        {
+          "name": "email",
+          "help": "The person's email address.",
+          "required": false
+        },
+        {
+          "name": "first-name",
+          "help": "The person's first name.",
+          "required": false
+        },
+        {
+          "name": "last-name",
+          "help": "The person's last name.",
+          "required": false
+        },
+        {
+          "name": "linkedin-url",
+          "help": "The person's LinkedIn profile URL. Preferred for the job-change check.",
+          "required": false
+        },
+        {
+          "name": "expected-company",
+          "help": "Expected employer as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "expected-company-domain",
+          "help": "Expected employer domain.",
+          "required": false
+        },
+        {
+          "name": "expected-company-name",
+          "help": "Expected employer name.",
+          "required": false
+        },
+        {
+          "name": "expected-company-website",
+          "help": "Expected employer website.",
+          "required": false
+        },
+        {
+          "name": "dry-run",
+          "help": "Offline and instant: no vendor calls.",
+          "required": false
+        },
+        {
+          "name": "external-ref",
+          "help": "Your correlation key, returned on the run.",
+          "required": false
+        },
+        {
+          "name": "routing",
+          "help": "Routing options as a JSON object.",
+          "required": false
+        },
+        {
+          "name": "compliance",
+          "help": "Compliance requirements as a JSON object (soc2, data).",
+          "required": false
+        },
+        {
+          "name": "idempotency-key",
+          "help": "Sent as the Idempotency-Key header.",
+          "required": false
+        },
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        },
+        {
+          "name": "priority",
+          "help": "Tier, sent as routing.path. Ask which before a bulk run; max yield is coverage.",
+          "required": false,
+          "values": [
+            "speed",
+            "balance",
+            "accuracy"
+          ]
+        },
+        {
+          "name": "max-provider-credits",
+          "help": "Cap on provider credits, sent as the X-Router-Max-Provider-Credits header.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "pricing",
+      "usage": "kingminos pricing",
+      "summary": "Show the public pricing table: credits per delivered answer for each capability path. No API key needed.",
+      "method": "GET",
+      "path": "/v1/pricing",
+      "flags": [
+        {
+          "name": "json",
+          "help": "Print the API response as JSON (with plans and BYOK fees) instead of the table.",
+          "required": false
+        }
+      ],
+      "write": false,
+      "auth": false
+    },
+    {
+      "id": "providers",
+      "usage": "kingminos providers",
+      "summary": "List the provider registry, with billing modes and credit estimates.",
+      "method": "GET",
+      "path": "/v1/providers",
+      "flags": [],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "recipes",
+      "usage": "kingminos recipes",
+      "summary": "Print machine-readable chaining workflows for agents.",
+      "method": "GET",
+      "path": "/v1/recipes",
+      "flags": [],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "recipes.guidance",
+      "usage": "kingminos recipes guidance",
+      "summary": "Print how to use an answer: confidence levels, path floors, next steps and billing. No API key needed.",
+      "method": "GET",
+      "path": "/v1/recipes/guidance",
+      "flags": [],
+      "write": false,
+      "auth": false
+    },
+    {
+      "id": "runs.get",
+      "usage": "kingminos runs get <id>",
+      "summary": "Fetch a recorded run.",
+      "method": "GET",
+      "path": "/v1/runs/{id}",
+      "flags": [
+        {
+          "name": "explain",
+          "help": "Sent as the X-Router-Explain header.",
+          "required": false,
+          "values": [
+            "default",
+            "full",
+            "minimal"
+          ]
+        },
+        {
+          "name": "schema",
+          "help": "Sent as the X-Router-Schema header.",
+          "required": false,
+          "values": [
+            "2"
+          ]
+        }
+      ],
+      "write": false,
+      "auth": true
+    },
+    {
+      "id": "subjects.delete",
+      "usage": "kingminos subjects delete <subject_key>",
+      "summary": "Erase a subject (company domain, email:<addr> or li:<slug>). Needs the erase scope.",
+      "method": "DELETE",
+      "path": "/v1/subjects/{subject_key}",
+      "flags": [],
+      "write": true,
+      "auth": true
+    }
+  ]
+}

@@ -12,7 +12,8 @@ name: API sync
 #     already carries this spec, a Cursor CLI agent (Grok) updates the commands,
 #     help, tests and README examples (.github/prompts/api-sync.md; skipped with
 #     a notice when the CURSOR_API_KEY secret is unset). The snapshot is
-#     written, the repo checks run, and the result is uploaded as a patch plus
+#     written, commands.json is regenerated from src/reference.ts (never by the
+#     agent), the repo checks run, and the result is uploaded as a patch plus
 #     the PR body.
 #   open-pr (write token) — applies that patch to a fresh checkout of main,
 #     verifies it only touches the allowed paths, and opens or updates the PR on
@@ -48,9 +49,11 @@ env:
   SNAPSHOT: api-sync/openapi.snapshot.json
   SYNC_BRANCH: chore/api-sync
   # Paths a sync PR may change (git pathspecs; checked again in open-pr).
-  ALLOWED_PATHS: src test README.md api-sync/openapi.snapshot.json
-  ALLOWED_RE: '^(src/|test/|README\.md$|api-sync/openapi\.snapshot\.json$)'
-  PROTECTED_RE: '^test/(check-api-coverage|release-calver)\.test\.mjs$'
+  ALLOWED_PATHS: src test README.md commands.json api-sync/openapi.snapshot.json
+  ALLOWED_RE: '^(src/|test/|README\.md$|commands\.json$|api-sync/openapi\.snapshot\.json$)'
+  # Tests the agent may not change: the commands.json drift check, the coverage
+  # check's own tests and the release versioning tests.
+  PROTECTED_RE: '^test/(commands-json\.test\.ts|check-api-coverage\.test\.mjs|release-calver\.test\.mjs)$'
 
 jobs:
   propose:
@@ -181,6 +184,7 @@ jobs:
                 "Shell(npm:run typecheck*)",
                 "Shell(npm:test*)",
                 "Shell(npm:run check:api-coverage*)",
+                "Shell(npm:run commands:json*)",
                 "Shell(node:scripts/check-api-coverage.mjs*)",
                 "Shell(jq*)",
                 "Shell(diff*)"
@@ -204,10 +208,12 @@ jobs:
                 "Write(.cursor/**)",
                 "Write(api-sync/**)",
                 "Write(scripts/**)",
+                "Write(commands.json)",
                 "Write(package.json)",
                 "Write(package-lock.json)",
                 "Write(tsconfig.json)",
                 "Write(tsup.config.ts)",
+                "Write(test/commands-json.test.ts)",
                 "Write(test/check-api-coverage.test.mjs)",
                 "Write(test/release-calver.test.mjs)",
                 "Read(.env*)"
@@ -241,6 +247,9 @@ jobs:
         if: steps.ai.outputs.enabled == 'true'
         run: |
           rm -rf .cursor/cli.json
+          # commands.json is regenerated after the snapshot step; drop whatever
+          # the agent left in it (it may run `npm run commands:json`).
+          git checkout -- commands.json
           # Anything the agent touched outside src/, test/ and README.md (or in
           # the protected tests) is put back.
           changed_files="$(git status --porcelain --untracked-files=all | awk '{print $NF}')"
@@ -262,6 +271,17 @@ jobs:
           rm -f api-sync/openapi.live.json
           cp "$RUNNER_TEMP/openapi.live.json" "$SNAPSHOT"
           git status --short
+
+      # Generated from the command reference the agent edited (the agent may
+      # not write it; the step above reverts it if it did). A failure here
+      # leaves the committed file, and `npm test` below reports the drift.
+      - name: Regenerate commands.json
+        if: steps.spec.outputs.changed == 'true'
+        run: |
+          if ! npm run commands:json; then
+            echo "::warning title=commands.json not regenerated::npm run commands:json failed; see the repo checks."
+          fi
+          git status --short -- commands.json
 
       # Results go to a file (no multi-line step outputs); the PR body reads it.
       - name: Run the repo checks
@@ -336,7 +356,7 @@ jobs:
           env = os.environ
           body = f"""Automated by the `API sync` workflow ({env['MODE']} mode) from the live spec at {env['SPEC_URL']} (canonical sha256 `{env['HASH']}`).
 
-          - **Generated:** `api-sync/openapi.snapshot.json`, the live spec canonicalised with `jq -S .`.
+          - **Generated:** `api-sync/openapi.snapshot.json`, the live spec canonicalised with `jq -S .`, and `commands.json`, the command reference regenerated from `src/reference.ts` by `npm run commands:json`.
           - **Drafted by the agent (Cursor CLI):** any change under `src/`, `test/` or `README.md`. Review it like any CLI change: command names, flags, help text, tests.
 
           ### Agent notes
@@ -443,6 +463,7 @@ jobs:
           delete-branch: true
           add-paths: |
             api-sync/openapi.snapshot.json
+            commands.json
             src/**
             test/**
             README.md

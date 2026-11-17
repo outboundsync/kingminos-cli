@@ -34,6 +34,20 @@ describe("kingminos CLI", () => {
 		assert.doesNotMatch(heading, /LinkedIn/);
 	});
 
+	it("lists company x-account and prints its help", () => {
+		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
+		assert.match(root.stdout, /company x-account\s+POST \/v1\/company\/x-account/);
+		const result = spawnSync(process.execPath, [cli, "company", "x-account", "--help"], {
+			encoding: "utf8",
+			cwd: repoRoot,
+		});
+		assert.equal(result.status, 0);
+		assert.match(result.stdout, /POST \/v1\/company\/x-account/);
+		assert.match(result.stdout, /--x-url/);
+		assert.match(result.stdout, /--min-confidence high\|medium\|low/);
+		assert.doesNotMatch(result.stdout, /--cache /);
+	});
+
 	it("lists person name and prints its help", () => {
 		const root = spawnSync(process.execPath, [cli, "--help"], { encoding: "utf8", cwd: repoRoot });
 		assert.match(root.stdout, /person name\s+POST \/v1\/person\/name/);
@@ -58,7 +72,9 @@ describe("kingminos CLI", () => {
 		assert.match(heading, /person b2b-social/);
 		assert.doesNotMatch(heading, /LinkedIn/);
 		assert.match(result.stdout, /--email \(required\)/);
-		assert.match(result.stdout, /no coverage/);
+		assert.match(result.stdout, /speed\|balance\|accuracy\|coverage/);
+		assert.match(result.stdout, /--company-domain/);
+		assert.doesNotMatch(result.stdout, /no coverage/);
 	});
 
 	it("lists person email and email verify and prints their help", () => {

@@ -34,6 +34,7 @@ Commands (live OpenAPI only):
   company b2b-social             POST /v1/company/b2b-social
   company icon                   POST /v1/company/icon
   company description            POST /v1/company/description
+  company x-account              POST /v1/company/x-account
   person verify-employment       POST /v1/person/verify-employment
   person language                POST /v1/person/language
   person phone                   POST /v1/person/phone
@@ -59,9 +60,11 @@ Credits:
 
 Your Keys providers: ${BYOK_PROVIDERS.join(", ")}
 Websearch is house-only (no credentials command).
-LeadMagic, Wiza, Findymail, and AI Ark are house-key vendors. ZoomInfo, BuiltWith,
-Prospeo, Apollo, Company URL Finder, People Data Labs, HG Insights, Brandfetch,
-and Enrich-CRM stay BYOK.
+LeadMagic, Wiza, Findymail, and AI Ark are house-key vendors (managed when no key is stored).
+Other Your Keys vendors stay unset until stored.
+prospeo, apollo, and lemlist are off the default path (routing.only or an explicit order).
+cognism, lusha, starbridge, clay, databar, quickenrich, getleads, and blitzapi store a key only (no routing hop).
+snovio is OAuth (client id and secret) and has no routing hop.
 
 Exit codes: 0 ok · 1 usage · 2 unauthorized (401) · 3 out of credits (402)
             4 rate limited (429) · 5 server (5xx) · 6 other HTTP error
@@ -121,11 +124,11 @@ POST /v1/company/resolve
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email --name --domain --website --dry-run --external-ref
-             --path --preset --priority speed|balance|accuracy|coverage
+             --min-confidence high|medium|low
+             --priority speed|balance|accuracy|coverage
              --routing <json> --compliance <json> --schema-version 2
              --body <json|@file|->
-Headers:     --idempotency-key --explain default|full|minimal
-             --schema 2 --max-provider-credits <n>
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
 `;
 		case "company.domain":
 			return `kingminos company domain
@@ -137,12 +140,12 @@ Body fields: --email --name --company-name --domain --website
              --city --state --country --postal-code --phone --linkedin-url
              --family-policy collapse_brand|separate_regional
              --path --preset --priority speed|balance|accuracy|coverage
+             --min-confidence high|medium|low
              --skip-cache --dry-run --external-ref
              --routing <json> --compliance <json> --schema-version 2
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
-             --max-provider-credits <n> --cache bypass
-             --cache-control no-cache|no-store
+             --cache bypass --cache-control no-cache|no-store
 `;
 		case "company.b2b_social":
 			return `kingminos company b2b-social
@@ -150,20 +153,18 @@ Headers:     --idempotency-key --explain default|full|minimal --schema 2
 POST /v1/company/b2b-social
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
-Decide the company's B2B social page URL (result.linkedin_url).
-Pass --domain (required). --name is optional ranking only.
---path speed is the bulk-list path (homepage-first, then ranked search).
+Decide the company's own B2B social page URL (result.linkedin_url), or null.
+Subject is domain, website, email, or name. Name-only is allowed.
 Delivered answers are billed; misses are not. See usage.credits.spent.
-Do not use company resolve for a B2B social page.
 
 Body fields: --email --name --domain --website --linkedin-url
              --hint --country
              --path --preset --priority speed|balance|accuracy|coverage
+             --min-confidence high|medium|low
              --dry-run --external-ref
              --routing <json> --compliance <json>
              --body <json|@file|->
-Headers:     --idempotency-key --explain default|full|minimal
-             --schema 2 --max-provider-credits <n>
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
 `;
 		case "company.icon":
 			return `kingminos company icon
@@ -172,11 +173,11 @@ POST /v1/company/icon
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email --name --domain --website
+             --min-confidence high|medium|low
              --dry-run --external-ref
              --compliance <json>
              --body <json|@file|->
-Headers:     --idempotency-key --explain default|full|minimal
-             --schema 2
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
 `;
 		case "company.description":
 			return `kingminos company description
@@ -186,12 +187,32 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email --name --domain --website
              --path --preset --priority speed|balance|accuracy|coverage
+             --min-confidence high|medium|low
              --max-chars <80-500> --skip-cache --dry-run --external-ref
              --routing <json> --compliance <json>
              --body <json|@file|->
-Headers:     --idempotency-key --explain default|full|minimal
-             --schema 2 --max-provider-credits <n>
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
              --cache bypass --cache-control no-cache|no-store
+`;
+		case "company.x_account":
+			return `kingminos company x-account
+
+POST /v1/company/x-account
+Requires tenant Bearer (--token or ${TOKEN_ENV}).
+
+Decide the company's own X account URL (result.x_url), or null.
+Subject is domain, website, email, or name. Name-only is allowed.
+Only a delivered floor-passing hit is billed; below-floor withholds and misses are not.
+See usage.credits.spent.
+
+Body fields: --email --name --domain --website --x-url
+             --hint --country
+             --path --preset --priority speed|balance|accuracy|coverage
+             --min-confidence high|medium|low
+             --dry-run --external-ref
+             --routing <json> --compliance <json>
+             --body <json|@file|->
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
 `;
 		case "company.hierarchy":
 			return `kingminos company hierarchy
@@ -200,12 +221,13 @@ POST /v1/company/hierarchy
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email --name --domain --website --country
-             --path --preset --priority speed|balance|accuracy|coverage
+             --path --preset --priority speed|balance|accuracy
+             (coverage is invalid_routing)
+             --min-confidence high|medium|low
              --dry-run --external-ref
              --routing <json> --compliance <json>
              --body <json|@file|->
-Headers:     --idempotency-key --explain default|full|minimal
-             --schema 2 --max-provider-credits <n>
+Headers:     --explain default|full|minimal --schema 2
 `;
 		case "person.verify_employment":
 			return `kingminos person verify-employment
@@ -216,11 +238,12 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Body fields: --email --first-name --last-name --linkedin-url
              --expected-company <json>
              --expected-company-domain --expected-company-name
-             --expected-company-website --priority speed|balance|accuracy|coverage
+             --expected-company-website --priority speed|balance|accuracy
+             (coverage, value, auto, fast, and name_only are invalid_routing)
+             --min-confidence high|medium|low
              --dry-run --external-ref --routing <json> --compliance <json>
              --body <json|@file|->
-Headers:     --idempotency-key --explain default|full|minimal
-             --schema 2 --max-provider-credits <n>
+Headers:     --idempotency-key --explain default|full|minimal --schema 2
 `;
 		case "person.language":
 			return `kingminos person language
@@ -231,10 +254,14 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email | --linkedin-url (one required)
              --first-name --last-name (match-only: rejects a mismatched profile)
-             --priority speed|balance|accuracy --skip-cache
-             --dry-run --external-ref --compliance <json>
+             --path speed|balance|accuracy
+             --priority speed|balance|accuracy
+             --routing <json>
+             --min-confidence high|medium|low
+             --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
+             --cache bypass --cache-control no-cache|no-store
 `;
 		case "person.phone":
 			return `kingminos person phone
@@ -250,7 +277,10 @@ Body fields: --email | --linkedin-url (one required)
              --max-results <1-10> (default 3)
              --format e164|international|national|digits|digits_national
                       (fills \`number\`; default e164; every phone also has \`formats\`)
+             --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
+             --routing <json> (only / ignore)
+             --min-confidence high|medium|low
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -270,6 +300,7 @@ Body fields: --email | --linkedin-url (one required)
              --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)
+             --min-confidence high|medium|low
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -284,9 +315,13 @@ A person's proper-cased first, last and full name.
 Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email | --linkedin-url (one required)
+             --phone --x-handle (accepted, never looked up)
+             --last-name-fallback <string>
+             --output <json> (salesforce_safe)
              --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)
+             --min-confidence high|medium|low
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -303,9 +338,11 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 
 Body fields: --email (required)
              --linkedin-url --first-name --last-name (match-only: rejects a mismatched profile)
-             --path speed|balance|accuracy (no coverage)
-             --priority speed|balance|accuracy
+             --company-domain (match-only employer)
+             --path speed|balance|accuracy|coverage
+             --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)
+             --min-confidence high|medium|low
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -324,6 +361,7 @@ Body fields: --first-name --last-name --company-domain (the name route)
              --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)
+             --min-confidence high|medium|low
              --skip-cache --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -342,6 +380,7 @@ Body fields: --email (required)
              --path speed|balance|accuracy|coverage
              --priority speed|balance|accuracy|coverage
              --routing <json> (only / ignore)
+             --min-confidence high|medium|low
              --dry-run --external-ref --compliance <json>
              --body <json|@file|->
 Headers:     --idempotency-key --explain default|full|minimal --schema 2
@@ -364,8 +403,8 @@ Requires tenant Bearer (--token or ${TOKEN_ENV}).
 Providers: ${BYOK_PROVIDERS.join(", ")}
 Websearch is house-only (byok_not_supported).
 
-zoominfo:  --client-id --client-secret  → { clientId, clientSecret }
-others:    --api-key                    → { apiKey }
+zoominfo, snovio: --client-id --client-secret  → { clientId, clientSecret }
+others:             --api-key                    → { apiKey }
 or --body <json|@file|->  (api_key alias accepted by the API)
 
 Responses never include the raw key. This CLI does not store or log it.

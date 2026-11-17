@@ -255,6 +255,8 @@ function helpTopic(topic: string): string {
 			return "company.icon";
 		case "description":
 			return "company.description";
+		case "x-account":
+			return "company.x_account";
 		case "verify-employment":
 			return "person.verify_employment";
 		case "language":

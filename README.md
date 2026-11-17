@@ -36,7 +36,7 @@ Optional: override the API base URL (default `https://api.kingminos.com`) with `
 
 Confidence on the response (`answer.confidence`: `high` | `medium` | `low`) is the write signal. The CLI does not print or depend on `safe_to_write`.
 
-`min_confidence` (override the path floor) is not on the live API yet, so this CLI does not expose `--min-confidence`.
+`--min-confidence high|medium|low` sets `min_confidence` and overrides the path floor. Omit it to keep the path default.
 
 ## JSON output
 
@@ -68,6 +68,7 @@ kingminos company resolve --email ada@example.com --dry-run
 kingminos company domain --domain example.com --priority speed
 kingminos company hierarchy --domain example.com
 kingminos company b2b-social --domain example.com --priority balance
+kingminos company x-account --domain example.com --priority balance
 kingminos company icon --domain example.com
 kingminos company description --domain example.com --priority speed
 kingminos person verify-employment --email ada@example.com --expected-company-domain example.com

@@ -4,11 +4,14 @@
 // workflow from https://api.kingminos.com/openapi.json).
 //
 // Scope (deterministic, reviewed here rather than guessed per run):
-//   - Public surface = every `paths.*.<method>` whose effective security uses the
-//     bearer scheme, minus the KingMinos deny-lists shared with kingminos-mcp
+//   - Public surface = every `paths.*.<method>` whose effective security
+//     (operation-level, else top-level) includes a scheme that
+//     components.securitySchemes defines as `type: http, scheme: bearer`, minus
+//     the KingMinos deny-lists shared with kingminos-mcp
 //     (inventory/openapi-surfaces.json) and kingminos-application
 //     (src/openapi-surfaces.ts): session/account routes under /v1/auth and
-//     /v1/account, operator routes under /v1/admin, and the discovery paths.
+//     /v1/account, operator routes under /v1/admin or tagged `admin`, and the
+//     discovery paths.
 //   - In scope for the CLI = the public surface minus EXCLUDED_OPERATIONS below.
 //     A new public operation is in scope by default, so the sync agent adds a
 //     command for it. Leaving one out of the CLI is a human decision: add it to
@@ -40,6 +43,9 @@ const HTTP_METHODS = ['get', 'put', 'post', 'delete', 'patch', 'head', 'options'
 
 /** KingMinos deny-list: session/account and operator routes are never public tools. */
 export const DENIED_PATH_PREFIXES = ['/v1/auth', '/v1/account', '/v1/admin'];
+
+/** Operations tagged `admin` are operator API, never public surface. */
+export const DENIED_TAG = 'admin';
 
 /** KingMinos discovery paths (spec documents, health). Not API surface. */
 export const DISCOVERY_PATHS = [
@@ -94,10 +100,11 @@ export function opKey(method, p) {
 
 function bearerSchemeNames(spec) {
 	const schemes = spec?.components?.securitySchemes ?? {};
-	const names = Object.entries(schemes)
-		.filter(([, s]) => s && s.type === 'http' && String(s.scheme).toLowerCase() === 'bearer')
-		.map(([name]) => name);
-	return new Set(names.length > 0 ? names : ['bearer']);
+	return new Set(
+		Object.entries(schemes)
+			.filter(([, s]) => s && s.type === 'http' && String(s.scheme).toLowerCase() === 'bearer')
+			.map(([name]) => name),
+	);
 }
 
 /** Every operation in the spec, classified. */
@@ -115,7 +122,11 @@ export function listOperations(spec) {
 			const usesBearer = security.some((req) => Object.keys(req ?? {}).some((k) => bearer.has(k)));
 			let kind;
 			if (DISCOVERY_PATHS.includes(p)) kind = 'discovery';
-			else if (DENIED_PATH_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`))) kind = 'denied';
+			else if (
+				DENIED_PATH_PREFIXES.some((prefix) => p === prefix || p.startsWith(`${prefix}/`)) ||
+				(Array.isArray(op.tags) && op.tags.includes(DENIED_TAG))
+			)
+				kind = 'denied';
 			else if (!usesBearer) kind = 'public-no-auth';
 			else if (Object.hasOwn(EXCLUDED_OPERATIONS, opKey(method, p))) kind = 'excluded';
 			else kind = 'in-scope';

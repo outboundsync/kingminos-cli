@@ -86,6 +86,22 @@ describe('check-api-coverage', () => {
 		assert.equal(kinds['POST /v1/company/x-account'], 'in-scope');
 	});
 
+	it('detects bearer by scheme type, not name, and denies admin-tagged operations', () => {
+		const s = {
+			openapi: '3.1.0',
+			components: { securitySchemes: { tenantKey: { type: 'http', scheme: 'bearer' }, other: { type: 'apiKey' } } },
+			paths: {
+				'/v1/thing': { post: { security: [{ tenantKey: [] }] } },
+				'/v1/keyed': { post: { security: [{ other: [] }] } },
+				'/v1/ops/report': { get: { security: [{ tenantKey: [] }], tags: ['admin'] } },
+			},
+		};
+		const kinds = Object.fromEntries(listOperations(s).map((op) => [`${op.method} ${op.path}`, op.kind]));
+		assert.equal(kinds['POST /v1/thing'], 'in-scope');
+		assert.equal(kinds['POST /v1/keyed'], 'public-no-auth');
+		assert.equal(kinds['GET /v1/ops/report'], 'denied');
+	});
+
 	it('reads capabilityPost, object-literal and fall-through cases', () => {
 		const source = commandsSource([
 			HEALTH,

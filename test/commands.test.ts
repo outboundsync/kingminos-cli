@@ -87,6 +87,24 @@ describe("buildRequest", () => {
 				body: { domain: "example.com", max_chars: 200, skip_cache: true },
 			},
 			{
+				command: { name: "company.x_account" },
+				path: "/v1/company/x-account",
+				extra: {
+					domain: "example.com",
+					"x-url": "https://x.com/example",
+					hint: "payments",
+					"min-confidence": "high",
+					priority: "coverage",
+				},
+				body: {
+					domain: "example.com",
+					x_url: "https://x.com/example",
+					hint: "payments",
+					min_confidence: "high",
+					routing: { path: "coverage" },
+				},
+			},
+			{
 				command: { name: "person.verify_employment" },
 				path: "/v1/person/verify-employment",
 				extra: {
@@ -161,6 +179,7 @@ describe("buildRequest", () => {
 					"linkedin-url": "https://www.linkedin.com/in/example",
 					"first-name": "Ada",
 					"last-name": "Lovelace",
+					"company-domain": "example.com",
 					routing: '{"ignore":["findymail"]}',
 					path: "accuracy",
 				},
@@ -169,6 +188,7 @@ describe("buildRequest", () => {
 					linkedin_url: "https://www.linkedin.com/in/example",
 					first_name: "Ada",
 					last_name: "Lovelace",
+					company_domain: "example.com",
 					routing: { ignore: ["findymail"], path: "accuracy" },
 				},
 			},
@@ -261,6 +281,18 @@ describe("buildRequest", () => {
 		});
 	});
 
+	it("sends company resolve --path / --preset inside routing", () => {
+		const request = buildRequest(
+			{ name: "company.resolve" },
+			flags({ email: "ada@example.com", path: "accuracy", preset: "zi_stamp" }),
+			loader,
+		);
+		assert.deepEqual(request.body, {
+			email: "ada@example.com",
+			routing: { path: "accuracy", preset: "zi_stamp" },
+		});
+	});
+
 	it("builds runs.get and subject erase", () => {
 		assert.equal(
 			buildRequest({ name: "runs.get", id: "run/1" }, {}, loader).path,
@@ -288,6 +320,14 @@ describe("buildRequest", () => {
 			loader,
 		);
 		assert.deepEqual(key.body, { apiKey: "lm_key" });
+
+		const snov = buildRequest(
+			{ name: "credentials.put", provider: "snovio" },
+			flags({ "client-id": "id", "client-secret": "sec" }),
+			loader,
+		);
+		assert.equal(snov.path, "/v1/credentials/snovio");
+		assert.deepEqual(snov.body, { clientId: "id", clientSecret: "sec" });
 	});
 
 	it("rejects websearch credentials (house-only)", () => {
@@ -305,6 +345,48 @@ describe("buildRequest", () => {
 			() => buildRequest({ name: "batch", capability: "company.domain" }, {}, loader),
 			{ message: /batch is not a single HTTP call/ },
 		);
+	});
+
+	it("sends Idempotency-Key and max-credits headers for company.hierarchy", () => {
+		const request = buildRequest(
+			{ name: "company.hierarchy" },
+			flags({ domain: "example.com", "idempotency-key": "abc", "max-provider-credits": "1" }),
+			loader,
+		);
+		assert.equal(request.headers["Idempotency-Key"], "abc");
+		assert.equal(request.headers["X-Router-Max-Provider-Credits"], "1");
+	});
+
+	it("sends cache headers for person.language", () => {
+		const request = buildRequest(
+			{ name: "person.language" },
+			flags({ email: "ada@example.com", cache: "bypass", "cache-control": "no-cache", path: "accuracy" }),
+			loader,
+		);
+		assert.deepEqual(request.body, { email: "ada@example.com", routing: { path: "accuracy" } });
+		assert.equal(request.headers["X-Router-Cache"], "bypass");
+		assert.equal(request.headers["Cache-Control"], "no-cache");
+	});
+
+	it("maps person.name fields the spec added", () => {
+		const request = buildRequest(
+			{ name: "person.name" },
+			flags({
+				email: "ada@example.com",
+				"last-name-fallback": "Unknown",
+				phone: "+15551212",
+				"x-handle": "ada",
+				output: '{"salesforce_safe":true}',
+			}),
+			loader,
+		);
+		assert.deepEqual(request.body, {
+			email: "ada@example.com",
+			last_name_fallback: "Unknown",
+			phone: "+15551212",
+			x_handle: "ada",
+			output: { salesforce_safe: true },
+		});
 	});
 
 	it("rejects an out-of-range --max-chars", () => {

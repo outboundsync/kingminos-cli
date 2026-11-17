@@ -29,8 +29,8 @@ describe("parseArgv", () => {
 	});
 
 	it("rejects unknown flags", () => {
-		assert.throws(() => parseArgv(["health", "--min-confidence", "high"]), {
-			message: /unknown flag --min-confidence/,
+		assert.throws(() => parseArgv(["health", "--not-a-flag", "high"]), {
+			message: /unknown flag --not-a-flag/,
 		});
 	});
 
@@ -61,6 +61,7 @@ describe("resolveCommand", () => {
 		{ argv: ["company", "b2b-social"], name: "company.b2b_social" },
 		{ argv: ["company", "icon"], name: "company.icon" },
 		{ argv: ["company", "description"], name: "company.description" },
+		{ argv: ["company", "x-account"], name: "company.x_account" },
 		{ argv: ["person", "verify-employment"], name: "person.verify_employment" },
 		{ argv: ["person", "language"], name: "person.language" },
 		{ argv: ["person", "phone"], name: "person.phone" },
@@ -107,6 +108,10 @@ describe("resolveCommand", () => {
 			name: "batch",
 			capability: "company.b2b_social",
 		});
+		assert.deepEqual(resolveCommand(["batch", "company", "x-account"]), {
+			name: "batch",
+			capability: "company.x_account",
+		});
 		assert.deepEqual(resolveCommand(["batch", "person", "title"]), {
 			name: "batch",
 			capability: "person.title",
@@ -151,5 +156,17 @@ describe("assertKnownFlags", () => {
 		assert.throws(() => assertKnownFlags("health", { domain: "example.com" }), {
 			message: /unknown flag --domain/,
 		});
+		assert.throws(() => assertKnownFlags("health", { "min-confidence": "high" }), {
+			message: /unknown flag --min-confidence/,
+		});
+		// The API parses min_confidence on these two but never applies it.
+		assert.throws(() => assertKnownFlags("company.hierarchy", { "min-confidence": "high" }), {
+			message: /unknown flag --min-confidence/,
+		});
+		assert.throws(() => assertKnownFlags("person.verify_employment", { "min-confidence": "high" }), {
+			message: /unknown flag --min-confidence/,
+		});
+		assertKnownFlags("company.hierarchy", { "idempotency-key": "abc", "max-provider-credits": "1" });
+		assertKnownFlags("company.resolve", { path: "speed", preset: "zi_stamp", "max-provider-credits": "2" });
 	});
 });

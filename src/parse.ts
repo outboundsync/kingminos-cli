@@ -24,16 +24,17 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"website",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"routing",
 		"compliance",
 		"schema-version",
 		"idempotency-key",
 		"explain",
 		"schema",
-		"max-provider-credits",
+		"priority",
 		"path",
 		"preset",
-		"priority",
+		"max-provider-credits",
 	]),
 	"company.domain": new Set([
 		"body",
@@ -54,16 +55,17 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"routing",
 		"compliance",
 		"schema-version",
 		"idempotency-key",
 		"explain",
 		"schema",
-		"max-provider-credits",
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
 	]),
 	"company.b2b_social": new Set([
 		"body",
@@ -78,13 +80,14 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"preset",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"routing",
 		"compliance",
 		"idempotency-key",
 		"explain",
 		"schema",
-		"max-provider-credits",
 		"priority",
+		"max-provider-credits",
 	]),
 	"company.icon": new Set([
 		"body",
@@ -94,6 +97,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"website",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -111,15 +115,38 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"routing",
 		"compliance",
 		"idempotency-key",
 		"explain",
 		"schema",
-		"max-provider-credits",
 		"cache",
 		"cache-control",
 		"priority",
+		"max-provider-credits",
+	]),
+	"company.x_account": new Set([
+		"body",
+		"email",
+		"name",
+		"domain",
+		"website",
+		"x-url",
+		"hint",
+		"country",
+		"path",
+		"preset",
+		"dry-run",
+		"external-ref",
+		"min-confidence",
+		"routing",
+		"compliance",
+		"idempotency-key",
+		"explain",
+		"schema",
+		"priority",
+		"max-provider-credits",
 	]),
 	"company.hierarchy": new Set([
 		"body",
@@ -134,11 +161,11 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"external-ref",
 		"routing",
 		"compliance",
-		"idempotency-key",
 		"explain",
 		"schema",
-		"max-provider-credits",
 		"priority",
+		"idempotency-key",
+		"max-provider-credits",
 	]),
 	"person.verify_employment": new Set([
 		"body",
@@ -157,8 +184,8 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"idempotency-key",
 		"explain",
 		"schema",
-		"max-provider-credits",
 		"priority",
+		"max-provider-credits",
 	]),
 	"person.language": new Set([
 		"body",
@@ -166,9 +193,14 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"first-name",
 		"last-name",
 		"linkedin-url",
+		"path",
+		"routing",
 		"skip-cache",
+		"cache",
+		"cache-control",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -185,9 +217,12 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"phone-types",
 		"max-results",
 		"format",
+		"path",
+		"routing",
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -209,6 +244,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -221,11 +257,16 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"body",
 		"email",
 		"linkedin-url",
+		"phone",
+		"x-handle",
+		"last-name-fallback",
+		"output",
 		"path",
 		"routing",
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -240,11 +281,13 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"first-name",
 		"last-name",
 		"linkedin-url",
+		"company-domain",
 		"path",
 		"routing",
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -264,6 +307,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"skip-cache",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -279,6 +323,7 @@ const COMMAND_FLAGS: Record<string, ReadonlySet<string>> = {
 		"routing",
 		"dry-run",
 		"external-ref",
+		"min-confidence",
 		"compliance",
 		"idempotency-key",
 		"explain",
@@ -307,6 +352,7 @@ export type Command =
 	| { name: "company.b2b_social" }
 	| { name: "company.icon" }
 	| { name: "company.description" }
+	| { name: "company.x_account" }
 	| { name: "person.verify_employment" }
 	| { name: "person.language" }
 	| { name: "person.phone" }
@@ -327,6 +373,7 @@ export type BatchCapability =
 	| "company.b2b_social"
 	| "company.icon"
 	| "company.description"
+	| "company.x_account"
 	| "person.verify_employment"
 	| "person.language"
 	| "person.phone"
@@ -507,10 +554,11 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 			case "company.b2b_social":
 			case "company.icon":
 			case "company.description":
+			case "company.x_account":
 				return { name: "batch", capability: inner.name };
 			default:
 				throw new UsageError(
-					"batch company commands: resolve | domain | hierarchy | b2b-social | icon | description",
+					"batch company commands: resolve | domain | hierarchy | b2b-social | icon | description | x-account",
 				);
 		}
 	}
@@ -562,7 +610,7 @@ function resolveBatch(mid: string | undefined, tail: string | undefined): Comman
 function resolveCompany(mid: string | undefined, tail: string | undefined): Command {
 	if (tail !== undefined) {
 		throw new UsageError(
-			"company <resolve|domain|hierarchy|b2b-social|icon|description> does not take positional arguments",
+			"company <resolve|domain|hierarchy|b2b-social|icon|description|x-account> does not take positional arguments",
 		);
 	}
 	switch (mid) {
@@ -578,9 +626,11 @@ function resolveCompany(mid: string | undefined, tail: string | undefined): Comm
 			return { name: "company.icon" };
 		case "description":
 			return { name: "company.description" };
+		case "x-account":
+			return { name: "company.x_account" };
 		default:
 			throw new UsageError(
-				"company commands: resolve | domain | hierarchy | b2b-social | icon | description",
+				"company commands: resolve | domain | hierarchy | b2b-social | icon | description | x-account",
 			);
 	}
 }

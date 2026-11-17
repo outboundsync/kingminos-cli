@@ -51,10 +51,14 @@ export function buildRequest(command: Command, flags: FlagMap, loader: BodyLoade
 			return capabilityPost("/v1/company/description", descriptionBody(flags, loader), flags, {
 				cache: true,
 			});
+		case "company.x_account":
+			return capabilityPost("/v1/company/x-account", xAccountBody(flags, loader), flags);
 		case "person.verify_employment":
 			return capabilityPost("/v1/person/verify-employment", employmentBody(flags, loader), flags);
 		case "person.language":
-			return capabilityPost("/v1/person/language", languageBody(flags, loader), flags);
+			return capabilityPost("/v1/person/language", languageBody(flags, loader), flags, {
+				cache: true,
+			});
 		case "person.phone":
 			return capabilityPost("/v1/person/phone", phoneBody(flags, loader), flags, {
 				cache: true,
@@ -123,6 +127,8 @@ function capabilityPost(
 		headers: {
 			...explainSchemaHeaders(flags),
 			...optionalHeader("Idempotency-Key", flagString(flags, "idempotency-key")),
+			// Honored on every capability route (kingminos-application src/app.ts parseHeaderMaxCredits);
+			// the OpenAPI spec does not list the header.
 			...optionalHeader("X-Router-Max-Provider-Credits", flagString(flags, "max-provider-credits")),
 			...(options?.cache
 				? {
@@ -154,11 +160,10 @@ function resolveBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown
 	assignString(body, "domain", flags);
 	assignString(body, "website", flags);
 	assignCommon(body, flags);
-	assignJson(body, "routing", flags);
+	// company.resolve reads path / preset from `routing` only (top-level keys are ignored).
+	assignRouting(body, flags, ["path", "preset"]);
 	assignJson(body, "compliance", flags);
 	assignString(body, "schema_version", flags, "schema-version");
-	assignString(body, "path", flags);
-	assignString(body, "preset", flags);
 	return withPriority(body, flags, "company.resolve");
 }
 
@@ -234,6 +239,24 @@ function descriptionBody(flags: FlagMap, loader: BodyLoader): Record<string, unk
 	return withPriority(body, flags, "company.description");
 }
 
+/** The company's own X account URL (`result.x_url`), or null. */
+function xAccountBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
+	const body = baseBody(flags, loader);
+	assignString(body, "email", flags);
+	assignString(body, "name", flags);
+	assignString(body, "domain", flags);
+	assignString(body, "website", flags);
+	assignString(body, "x_url", flags, "x-url");
+	assignString(body, "hint", flags);
+	assignString(body, "country", flags);
+	assignString(body, "path", flags);
+	assignString(body, "preset", flags);
+	assignCommon(body, flags);
+	assignJson(body, "routing", flags);
+	assignJson(body, "compliance", flags);
+	return withPriority(body, flags, "company.x_account");
+}
+
 function hierarchyBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
 	const body = baseBody(flags, loader);
 	assignString(body, "email", flags);
@@ -275,6 +298,7 @@ function languageBody(flags: FlagMap, loader: BodyLoader): Record<string, unknow
 		body.skip_cache = true;
 	}
 	assignCommon(body, flags);
+	assignRouting(body, flags);
 	assignJson(body, "compliance", flags);
 	return withPriority(body, flags, "person.language");
 }
@@ -296,16 +320,14 @@ function phoneBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> 
 			body.phone_types = types;
 		}
 	}
-	const maxResults = Number(flagString(flags, "max-results"));
-	if (Number.isInteger(maxResults) && maxResults >= 1) {
-		body.max_results = maxResults;
-	}
+	assignInteger(body, "max_results", flags, "max-results", 1, 10);
 	// e164 | international | national | digits | digits_national (server validates).
 	assignString(body, "format", flags);
 	if (flagBool(flags, "skip-cache")) {
 		body.skip_cache = true;
 	}
 	assignCommon(body, flags);
+	assignRouting(body, flags);
 	assignJson(body, "compliance", flags);
 	return withPriority(body, flags, "person.phone");
 }
@@ -340,6 +362,10 @@ function nameBody(flags: FlagMap, loader: BodyLoader): Record<string, unknown> {
 	const body = baseBody(flags, loader);
 	assignString(body, "email", flags);
 	assignString(body, "linkedin_url", flags, "linkedin-url");
+	assignString(body, "phone", flags);
+	assignString(body, "x_handle", flags, "x-handle");
+	assignString(body, "last_name_fallback", flags, "last-name-fallback");
+	assignJson(body, "output", flags);
 	if (flagBool(flags, "skip-cache")) {
 		body.skip_cache = true;
 	}
@@ -355,6 +381,7 @@ function personB2bSocialBody(flags: FlagMap, loader: BodyLoader): Record<string,
 	assignString(body, "linkedin_url", flags, "linkedin-url");
 	assignString(body, "first_name", flags, "first-name");
 	assignString(body, "last_name", flags, "last-name");
+	assignString(body, "company_domain", flags, "company-domain");
 	if (flagBool(flags, "skip-cache")) {
 		body.skip_cache = true;
 	}
@@ -390,16 +417,22 @@ function emailVerifyBody(flags: FlagMap, loader: BodyLoader): Record<string, unk
 	return withPriority(body, flags, "email.verify");
 }
 
-/** `--routing <json>` plus `--path`, for capabilities that read the path from `routing` only. */
-function assignRouting(body: Record<string, unknown>, flags: FlagMap): void {
+/** `--routing <json>` plus `--path` (and optionally `--preset`), for capabilities that read them from `routing` only. */
+function assignRouting(
+	body: Record<string, unknown>,
+	flags: FlagMap,
+	keys: readonly ("path" | "preset")[] = ["path"],
+): void {
 	assignJson(body, "routing", flags);
-	const path = flagString(flags, "path");
-	if (path !== undefined) {
-		const routing =
-			body.routing && typeof body.routing === "object" && !Array.isArray(body.routing)
-				? (body.routing as Record<string, unknown>)
-				: {};
-		body.routing = { ...routing, path };
+	for (const key of keys) {
+		const value = flagString(flags, key);
+		if (value !== undefined) {
+			const routing =
+				body.routing && typeof body.routing === "object" && !Array.isArray(body.routing)
+					? (body.routing as Record<string, unknown>)
+					: {};
+			body.routing = { ...routing, [key]: value };
+		}
 	}
 }
 
@@ -438,6 +471,7 @@ function assignCommon(body: Record<string, unknown>, flags: FlagMap): void {
 		body.dry_run = true;
 	}
 	assignString(body, "external_ref", flags, "external-ref");
+	assignString(body, "min_confidence", flags, "min-confidence");
 }
 
 function assignString(
@@ -537,13 +571,13 @@ function parseProvider(provider: string): string {
 function credentialsPutBody(provider: string, flags: FlagMap, loader: BodyLoader): unknown {
 	const rawBody = flagString(flags, "body");
 	const fromFile = rawBody ? loadBodyObject(rawBody, loader) : undefined;
-	if (provider === "zoominfo") {
+	if (provider === "zoominfo" || provider === "snovio") {
 		const clientId = flagString(flags, "client-id") ?? stringField(fromFile, "clientId");
 		const clientSecret =
 			flagString(flags, "client-secret") ?? stringField(fromFile, "clientSecret");
 		if (!clientId || !clientSecret) {
 			throw new UsageError(
-				"credentials put zoominfo requires --client-id and --client-secret (or --body { clientId, clientSecret })",
+				`credentials put ${provider} requires --client-id and --client-secret (or --body { clientId, clientSecret })`,
 			);
 		}
 		return { clientId, clientSecret };

@@ -58,6 +58,8 @@ Billing is for delivered answers. The CLI prints `usage.credits.spent` from the 
 | 5 | Server error (HTTP 5xx) |
 | 6 | Other HTTP error |
 
+Codes match the OutboundSync CLI (`outboundsync`) except 3: there it means forbidden (HTTP 403), because OutboundSync has no credits error. Here 3 is out of credits (HTTP 402).
+
 ## Examples
 
 Each capability. Set `KINGMINOS_API_KEY` first.

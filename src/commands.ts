@@ -127,8 +127,9 @@ function capabilityPost(
 		headers: {
 			...explainSchemaHeaders(flags),
 			...optionalHeader("Idempotency-Key", flagString(flags, "idempotency-key")),
-			// Honored on every capability route (kingminos-application src/app.ts parseHeaderMaxCredits);
-			// the OpenAPI spec does not list the header.
+			// Declared as X-Router-Max-Provider-Credits on the capability routes that
+			// accept a caller ceiling. Not declared on company.icon, person.language,
+			// or person.phone (fixed path caps); those commands omit the flag.
 			...optionalHeader("X-Router-Max-Provider-Credits", flagString(flags, "max-provider-credits")),
 			...(options?.cache
 				? {
@@ -559,8 +560,8 @@ function parseObjectJson(raw: string, label: string): Record<string, unknown> {
 }
 
 function parseProvider(provider: string): string {
-	if (provider === "websearch") {
-		throw new UsageError("websearch is house-only (byok_not_supported)");
+	if (provider === "websearch" || provider === "favicon") {
+		throw new UsageError(`${provider} is house-only (byok_not_supported)`);
 	}
 	if (!isByokProvider(provider)) {
 		throw new UsageError(`unknown_provider: ${provider}`);

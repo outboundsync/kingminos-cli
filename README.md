@@ -36,7 +36,7 @@ Optional: override the API base URL (default `https://api.kingminos.com`) with `
 
 Confidence on the response (`answer.confidence`: `high` | `medium` | `low`) is the write signal. The CLI does not print or depend on `safe_to_write`.
 
-`--min-confidence high|medium|low` sets `min_confidence` and overrides the path floor. Omit it to keep the path default. `company hierarchy` and `person verify-employment` don't take it: the API parses the field there but never applies it.
+`--min-confidence high|medium|low` sets `min_confidence` and overrides the path floor. Omit it to keep the path default. `company hierarchy` and `person verify-employment` don't take it: those request bodies have no `min_confidence`.
 
 ## JSON output
 

@@ -159,7 +159,7 @@ describe("assertKnownFlags", () => {
 		assert.throws(() => assertKnownFlags("health", { "min-confidence": "high" }), {
 			message: /unknown flag --min-confidence/,
 		});
-		// Those request bodies have no min_confidence.
+		// The API parses min_confidence on these two but never applies it (dropped from the spec).
 		assert.throws(() => assertKnownFlags("company.hierarchy", { "min-confidence": "high" }), {
 			message: /unknown flag --min-confidence/,
 		});
